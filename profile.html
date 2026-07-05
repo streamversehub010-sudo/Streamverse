@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en" class="sv-auth-pending">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — My Profile</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<!-- Applies saved light/dark theme before paint -->
+<script src="theme.js"></script>
+</head>
+<body>
+
+<!-- ============================== NAVBAR (shared markup/style with index.html) ============================== -->
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <span class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+      </svg>
+    </span>
+    <span class="logo-text">Stream<span>Verse</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+  </ul>
+  <div class="nav-right">
+    <span id="navNotifSlot"></span>
+    <span id="navAuthSlot"></span>
+  </div>
+</nav>
+
+<!-- ============================== ACCOUNT MANAGER ============================== -->
+<main class="account-wrap">
+  <div class="account-header">
+    <div>
+      <h1>Account Manager</h1>
+      <p>View and edit your profile information.</p>
+    </div>
+  </div>
+
+  <!-- Profile / Settings tab switcher (Settings link lives on its own protected page) -->
+  <div class="account-tabs">
+    <span class="account-tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </span>
+    <a class="account-tab" href="settings.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Web App Settings
+    </a>
+  </div>
+
+  <!-- ------------------- Profile picture, display name, bio ------------------- -->
+  <section class="account-card">
+    <h2>Profile Information</h2>
+    <p class="card-sub">This is how you appear across StreamVerse.</p>
+
+    <form id="profileForm">
+      <div class="avatar-uploader">
+        <div class="avatar-preview-wrap">
+          <div class="avatar-preview" id="avatarPreview">?</div>
+          <span class="plan-indicator" id="planIndicator" title="Current subscription plan">
+            <span class="plan-indicator-dot"></span>
+            <span id="planIndicatorLabel">Basic</span>
+          </span>
+        </div>
+        <div class="avatar-uploader-fields">
+          <input type="file" id="avatarFileInput" accept="image/png, image/jpeg" style="display:none;">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button type="button" class="btn-admin secondary" id="avatarChooseBtn">Upload Photo</button>
+            <button type="button" class="btn-admin ghost" id="avatarRemoveBtn">Remove</button>
+          </div>
+          <p class="field-hint" id="avatarHint">JPG or PNG, up to 5MB.</p>
+        </div>
+        <button type="button" class="btn-admin upgrade-btn" id="openUpgradeBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+          Upgrade Plan
+        </button>
+      </div>
+
+      <div class="form-field">
+        <label>Display Name</label>
+        <input type="text" id="usernameInput" required autocomplete="nickname">
+      </div>
+
+      <div class="account-save-bar">
+        <button type="submit" class="auth-submit" style="width:auto;padding:12px 26px;" id="profileSaveBtn">Save Changes</button>
+        <span class="account-status" id="profileStatus"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- ------------------------- Movie Badge (watch-history rank) ------------------------- -->
+  <section class="account-card">
+    <h2>Movie Badge</h2>
+    <p class="card-sub">Your rank climbs automatically as you finish watching titles — from Rookie all the way to Ultimate.</p>
+
+    <div class="badge-display">
+      <div class="badge-icon" id="badgeIcon">🎬</div>
+      <div class="badge-display-info">
+        <div class="badge-name" id="badgeName">Rookie</div>
+        <div class="badge-count" id="badgeCount">0 titles watched</div>
+        <div class="badge-progress-track">
+          <div class="badge-progress-fill" id="badgeProgressFill"></div>
+        </div>
+        <div class="badge-next-hint" id="badgeNextHint"></div>
+      </div>
+    </div>
+
+    <div class="badge-ladder" id="badgeLadder"></div>
+  </section>
+
+  <!-- ------------------------- Email + Username (read-only identity) ------------------------- -->
+  <section class="account-card">
+    <h2>Account Details</h2>
+    <p class="card-sub">Your login credentials.</p>
+
+    <form id="emailForm">
+      <div class="form-field">
+        <label>Username</label>
+        <input type="text" id="usernameDisplay" disabled>
+        <p class="field-hint">Your username is shown as your display name above — edit it there.</p>
+      </div>
+      <div class="form-field">
+        <label>Email Address</label>
+        <input type="email" id="emailInput" required autocomplete="email">
+      </div>
+      <div class="form-field">
+        <label>Current Password <span style="text-transform:none;font-weight:400;">(required to change email)</span></label>
+        <input type="password" id="emailCurrentPassword" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <div class="account-save-bar">
+        <button type="submit" class="auth-submit" style="width:auto;padding:12px 26px;" id="emailSaveBtn">Update Email</button>
+        <span class="account-status" id="emailStatus"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- ------------------------------- Password ------------------------------- -->
+  <section class="account-card">
+    <h2>Password</h2>
+    <p class="card-sub">Choose a strong password you don't use elsewhere.</p>
+
+    <form id="passwordForm">
+      <div class="form-field">
+        <label>Current Password</label>
+        <input type="password" id="currentPasswordInput" required autocomplete="current-password">
+      </div>
+      <div class="form-field">
+        <label>New Password</label>
+        <input type="password" id="newPasswordInput" required minlength="6" autocomplete="new-password">
+        <p class="field-hint">At least 6 characters.</p>
+      </div>
+      <div class="form-field">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirmPasswordInput" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="account-save-bar">
+        <button type="submit" class="auth-submit" style="width:auto;padding:12px 26px;" id="passwordSaveBtn">Change Password</button>
+        <span class="account-status" id="passwordStatus"></span>
+      </div>
+    </form>
+  </section>
+
+  <!-- --------------------------------- Log Out --------------------------------- -->
+  <section class="account-card">
+    <h2>Session</h2>
+    <p class="card-sub">Signed in as <strong id="whoamiLine">…</strong></p>
+    <button class="btn-admin secondary" id="logoutBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      Log Out
+    </button>
+  </section>
+</main>
+
+<!-- ============================== UPGRADE PLAN MODAL ============================== -->
+<div class="modal-overlay" id="upgradeModalOverlay">
+  <div class="modal-box plan-modal-box" role="dialog" aria-modal="true" aria-labelledby="upgradeModalTitle">
+    <div class="plan-modal-head">
+      <div>
+        <h2 id="upgradeModalTitle" style="margin-bottom:2px;">Choose Your Plan</h2>
+        <p class="card-sub" style="margin-bottom:0;">Compare plans and pick the one that fits you best.</p>
+      </div>
+      <button type="button" class="plan-modal-close" id="closeUpgradeBtn" aria-label="Close">&times;</button>
+    </div>
+    <div class="plan-grid" id="planGrid"><!-- plan cards injected by JS --></div>
+    <span class="account-status" id="upgradeStatus"></span>
+  </div>
+</div>
+
+<!-- ============================== CHECKOUT MODAL ============================== -->
+<div class="modal-overlay" id="checkoutModalOverlay">
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle">
+    <h2 id="checkoutModalTitle" style="margin-bottom:2px;">Checkout</h2>
+    <p class="card-sub" id="checkoutSummary" style="margin-bottom:14px;"></p>
+
+    <div class="form-field">
+      <label>Billing Duration (months)</label>
+      <input type="number" id="coMonths" min="1" max="36" step="1" value="1">
+    </div>
+
+    <div class="form-field">
+      <label>Payment Method</label>
+      <div id="coMethodList"><!-- admin-enabled payment methods injected by JS --></div>
+    </div>
+
+    <div class="form-field">
+      <label>Note (optional — e.g. transaction/reference number)</label>
+      <input type="text" id="coNote" placeholder="Optional reference for your payment">
+    </div>
+
+    <div class="form-field">
+      <label>Proof of Payment <span style="text-transform:none;font-weight:400;">(optional — bank transfer slip, PDF or JPG)</span></label>
+      <input type="file" id="coProofFileInput" accept="application/pdf, image/jpeg, image/jpg" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button type="button" class="btn-admin ghost small" id="coProofChooseBtn">Upload PDF or JPG</button>
+        <span id="coProofFileName" class="card-sub" style="margin:0;"></span>
+        <button type="button" class="btn-admin ghost small" id="coProofRemoveBtn" style="display:none;">Remove</button>
+      </div>
+      <p class="field-hint" id="coProofHint">Uploading a photo or PDF of your transfer slip lets an admin confirm your payment faster. Max 650KB.</p>
+    </div>
+
+    <p class="card-sub" id="coTotalPreview" style="margin-top:2px;"></p>
+    <span class="account-status" id="checkoutStatus"></span>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-admin ghost" id="closeCheckoutBtn">Cancel</button>
+      <button type="button" class="btn-admin" id="submitCheckoutBtn">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-bottom">
+      <span>© 2026 StreamVerse. All Rights Reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="movies-data.js"></script>
+<script type="module" src="firebase-auth.js"></script>
+<script src="store.js"></script>
+<script src="auth-guard.js"></script>
+<script type="module" src="broadcast.js"></script>
+<!-- Notification bell (badge unlocks, account alerts) -->
+<script src="notifications.js"></script>
+<!-- Auto-notifies a viewer when an admin upgrades their plan -->
+<script type="module" src="plan-notify.js"></script>
+<script src="nav-auth.js"></script>
+
+<script>
+/* =========================================================================
+   Profile page logic
+   - auth-guard.js redirects guests to login.html before any of this runs.
+   - Three independent forms: profile info (name/bio/avatar), email, and
+     password — each has its own save button + status message so a failure
+     in one doesn't block the others.
+   ========================================================================= */
+
+const profileForm   = document.getElementById('profileForm');
+const usernameInput = document.getElementById('usernameInput');
+const avatarPreview  = document.getElementById('avatarPreview');
+const avatarFileInput = document.getElementById('avatarFileInput');
+const avatarChooseBtn = document.getElementById('avatarChooseBtn');
+const avatarRemoveBtn = document.getElementById('avatarRemoveBtn');
+const avatarHint      = document.getElementById('avatarHint');
+const profileStatus  = document.getElementById('profileStatus');
+
+const emailForm      = document.getElementById('emailForm');
+const usernameDisplay= document.getElementById('usernameDisplay');
+const emailInput     = document.getElementById('emailInput');
+const emailCurrentPw = document.getElementById('emailCurrentPassword');
+const emailStatus    = document.getElementById('emailStatus');
+
+const passwordForm   = document.getElementById('passwordForm');
+const currentPwInput = document.getElementById('currentPasswordInput');
+const newPwInput     = document.getElementById('newPasswordInput');
+const confirmPwInput = document.getElementById('confirmPasswordInput');
+const passwordStatus = document.getElementById('passwordStatus');
+
+const whoamiLine  = document.getElementById('whoamiLine');
+const logoutBtn   = document.getElementById('logoutBtn');
+
+const planIndicatorLabel = document.getElementById('planIndicatorLabel');
+const openUpgradeBtn     = document.getElementById('openUpgradeBtn');
+const closeUpgradeBtn    = document.getElementById('closeUpgradeBtn');
+const upgradeModalOverlay= document.getElementById('upgradeModalOverlay');
+const planGrid            = document.getElementById('planGrid');
+const upgradeStatus       = document.getElementById('upgradeStatus');
+
+const checkoutModalOverlay = document.getElementById('checkoutModalOverlay');
+const checkoutSummary      = document.getElementById('checkoutSummary');
+const coMonths              = document.getElementById('coMonths');
+const coMethodList          = document.getElementById('coMethodList');
+const coNote                = document.getElementById('coNote');
+const coProofFileInput      = document.getElementById('coProofFileInput');
+const coProofChooseBtn      = document.getElementById('coProofChooseBtn');
+const coProofFileName       = document.getElementById('coProofFileName');
+const coProofRemoveBtn      = document.getElementById('coProofRemoveBtn');
+const coProofHint           = document.getElementById('coProofHint');
+const COPROOF_HINT_DEFAULT  = 'Uploading a photo or PDF of your transfer slip lets an admin confirm your payment faster. Max 650KB.';
+const MAX_PROOF_BYTES       = 650 * 1024; // keeps the base64 copy safely under Firestore's 1MiB doc limit
+let pendingProofData         = null; // { dataUrl, type, name } once read
+const coTotalPreview        = document.getElementById('coTotalPreview');
+const checkoutStatus        = document.getElementById('checkoutStatus');
+const submitCheckoutBtn     = document.getElementById('submitCheckoutBtn');
+let checkoutPlanKey = null;
+let checkoutMethods = {};
+
+let pendingPhotoURL = undefined; // undefined = no change, '' = remove, string = new upload
+let currentPlanKey = 'basic';
+
+function setStatus(el, ok, msg){
+  el.textContent = msg;
+  el.classList.remove('ok','err');
+  el.classList.add('show', ok ? 'ok' : 'err');
+  if (ok) setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function renderAvatar(username, photoURL){
+  const initial = (username || '?').charAt(0).toUpperCase();
+  avatarPreview.innerHTML = photoURL
+    ? `<img src="${photoURL}" alt="">`
+    : initial;
+}
+
+function fillForms(user){
+  usernameInput.value = user.username || '';
+  usernameDisplay.value = user.username || '';
+  emailInput.value = user.email || '';
+  whoamiLine.textContent = `${user.username} (${user.email})`;
+  renderAvatar(user.username, user.photoURL);
+  currentPlanKey = user.plan || 'basic';
+  const plan = svAuth.getPlan(currentPlanKey);
+  planIndicatorLabel.textContent = plan.label;
+  if (user.planExpiresAt) {
+    const expires = new Date(user.planExpiresAt);
+    document.getElementById('planIndicator').title =
+      `Current subscription plan — renews/expires ${expires.toLocaleDateString()}`;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Profile picture upload — accepts a real .jpg/.png file (not a URL),
+   downsizes it on a <canvas> to keep the stored image small enough for
+   a Firestore document, then shows it immediately in the preview.
+   --------------------------------------------------------------------- */
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5MB raw-file ceiling before we even try to read it
+const AVATAR_MAX_DIMENSION = 256;         // stored image is downscaled to this max width/height
+
+avatarChooseBtn.addEventListener('click', () => avatarFileInput.click());
+
+avatarRemoveBtn.addEventListener('click', () => {
+  pendingPhotoURL = '';
+  avatarFileInput.value = '';
+  renderAvatar(usernameInput.value, '');
+  avatarHint.textContent = 'Photo will be removed when you save.';
+});
+
+avatarFileInput.addEventListener('change', () => {
+  const file = avatarFileInput.files && avatarFileInput.files[0];
+  if (!file) return;
+
+  if (!/^image\/(jpeg|png)$/.test(file.type)) {
+    avatarHint.textContent = 'Please choose a JPG or PNG image.';
+    avatarFileInput.value = '';
+    return;
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    avatarHint.textContent = 'That image is too large — please choose one under 5MB.';
+    avatarFileInput.value = '';
+    return;
+  }
+
+  avatarHint.textContent = 'Processing image…';
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      // Downscale to AVATAR_MAX_DIMENSION on the longest side, keeping
+      // aspect ratio, then re-encode as JPEG to keep the stored data
+      // URI small — a full-resolution phone photo would otherwise blow
+      // past Firestore's per-document size limit.
+      let { width, height } = img;
+      const scale = Math.min(1, AVATAR_MAX_DIMENSION / Math.max(width, height));
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      pendingPhotoURL = dataUrl;
+      renderAvatar(usernameInput.value, dataUrl);
+      avatarHint.textContent = 'New photo ready — click Save Changes to apply.';
+    };
+    img.onerror = () => { avatarHint.textContent = 'Could not read that image. Please try another file.'; };
+    img.src = reader.result;
+  };
+  reader.onerror = () => { avatarHint.textContent = 'Could not read that file. Please try again.'; };
+  reader.readAsDataURL(file);
+});
+
+/* ---------------------------------------------------------------------
+   Movie Badge (watch-history rank) — read-only, computed from real
+   watch progress recorded by watch-tracker.js on the viewer page.
+   --------------------------------------------------------------------- */
+const BADGE_ICONS = {
+  rookie: '🎬', pro: '🥉', master: '🥈', grandmaster: '🥇', legend: '🏆', ultimate: '👑'
+};
+
+async function renderBadge(){
+  const stats = await svAuth.getWatchStats();
+  const badge = stats.badge;
+  const next = svAuth.nextBadge(stats.count);
+
+  document.getElementById('badgeIcon').textContent = BADGE_ICONS[badge.key] || '🎬';
+  document.getElementById('badgeName').textContent = badge.label;
+  document.getElementById('badgeCount').textContent =
+    `${stats.count} title${stats.count === 1 ? '' : 's'} watched`;
+
+  const fill = document.getElementById('badgeProgressFill');
+  const hint = document.getElementById('badgeNextHint');
+  if (next) {
+    const span = next.min - badge.min;
+    const progressed = stats.count - badge.min;
+    fill.style.width = `${Math.min(100, Math.max(4, (progressed / span) * 100))}%`;
+    hint.textContent = `${next.min - stats.count} more title${next.min - stats.count === 1 ? '' : 's'} to reach ${next.label}`;
+  } else {
+    fill.style.width = '100%';
+    hint.textContent = "You've reached the top rank!";
+  }
+
+  // Full ladder, so viewers can see every tier and where they stand.
+  const ladder = document.getElementById('badgeLadder');
+  ladder.innerHTML = svAuth.BADGE_TIERS.map((t) => {
+    const reached = stats.count >= t.min;
+    const isCurrent = t.key === badge.key;
+    return `<div class="badge-ladder-step${reached ? ' reached' : ''}${isCurrent ? ' current' : ''}">
+      <span class="badge-ladder-icon">${BADGE_ICONS[t.key]}</span>
+      <span class="badge-ladder-label">${t.label}</span>
+      <span class="badge-ladder-min">${t.min}+</span>
+    </div>`;
+  }).join('');
+}
+
+profileForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = { username: usernameInput.value };
+  if (pendingPhotoURL !== undefined) payload.photoURL = pendingPhotoURL;
+  const result = await svAuth.updateProfileInfo(payload);
+  btn.disabled = false; btn.textContent = 'Save Changes';
+  if (!result.ok) return setStatus(profileStatus, false, result.error);
+  pendingPhotoURL = undefined;
+  avatarHint.textContent = 'JPG or PNG, up to 5MB.';
+  setStatus(profileStatus, true, 'Profile updated.');
+  if (result.user) { fillForms(result.user); }
+});
+
+emailForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('emailSaveBtn');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  const result = await svAuth.changeEmail(emailInput.value, emailCurrentPw.value);
+  btn.disabled = false; btn.textContent = 'Update Email';
+  if (!result.ok) return setStatus(emailStatus, false, result.error);
+  emailCurrentPw.value = '';
+  setStatus(emailStatus, true, 'Email updated.');
+});
+
+passwordForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (newPwInput.value !== confirmPwInput.value){
+    return setStatus(passwordStatus, false, 'New passwords do not match.');
+  }
+  const btn = document.getElementById('passwordSaveBtn');
+  btn.disabled = true; btn.textContent = 'Updating…';
+  const result = await svAuth.changePassword(newPwInput.value, currentPwInput.value);
+  btn.disabled = false; btn.textContent = 'Change Password';
+  if (!result.ok) return setStatus(passwordStatus, false, result.error);
+  passwordForm.reset();
+  setStatus(passwordStatus, true, 'Password changed.');
+});
+
+/* ---------------------------------------------------------------------
+   Subscription plan — fixed indicator next to the avatar + a clickable
+   "Upgrade Plan" button that opens a modal comparing every plan's
+   benefits and demerits. Selecting a plan calls svAuth.upgradePlan and
+   updates the indicator immediately.
+   --------------------------------------------------------------------- */
+function renderPlanModal(){
+  const plans = svAuth.getPlans();
+  planGrid.innerHTML = plans.map((p) => {
+    const isCurrent = p.key === currentPlanKey;
+    const isPaid = p.key !== 'basic';
+    // Standard/Premium plans still can't be self-granted — picking one
+    // opens the checkout modal, which submits a payment request that an
+    // admin must approve before the plan actually changes.
+    let btnLabel, btnDisabled, btnClass = 'btn-admin plan-choose-btn';
+    if (isCurrent) {
+      btnLabel = 'Current Plan';
+      btnDisabled = true;
+      btnClass += ' secondary';
+    } else if (isPaid) {
+      btnLabel = `Upgrade to ${p.label}`;
+      btnDisabled = false;
+    } else {
+      btnLabel = `Switch to ${p.label}`;
+      btnDisabled = false;
+    }
+    return `<div class="plan-card${isCurrent ? ' current' : ''}" data-plan="${p.key}">
+      <div class="plan-card-head">
+        <span class="plan-card-name">${p.label}</span>
+        <span class="plan-card-price">${p.price}</span>
+      </div>
+      <p class="plan-card-tagline">${p.tagline}</p>
+      <div class="plan-card-section">
+        <h4 class="plan-card-list-title good">Benefits</h4>
+        <ul class="plan-card-list good">
+          ${p.benefits.map(b => `<li>${b}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="plan-card-section">
+        <h4 class="plan-card-list-title bad">Demerits</h4>
+        <ul class="plan-card-list bad">
+          ${p.demerits.map(d => `<li>${d}</li>`).join('')}
+        </ul>
+      </div>
+      <button type="button" class="${btnClass}" data-plan="${p.key}" data-paid="${isPaid ? '1' : '0'}" ${btnDisabled ? 'disabled' : ''}>
+        ${btnLabel}
+      </button>
+    </div>`;
+  }).join('');
+
+  planGrid.querySelectorAll('.plan-choose-btn:not([disabled])').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const planKey = btn.getAttribute('data-plan');
+      if (btn.getAttribute('data-paid') === '1') {
+        openCheckoutModal(planKey);
+        return;
+      }
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = 'Switching…';
+      const result = await svAuth.upgradePlan(planKey);
+      if (!result.ok) {
+        setStatus(upgradeStatus, false, result.error);
+        btn.disabled = false;
+        btn.textContent = originalText;
+        return;
+      }
+      currentPlanKey = planKey;
+      const plan = svAuth.getPlan(planKey);
+      planIndicatorLabel.textContent = plan.label;
+      setStatus(upgradeStatus, true, `You're now on the ${plan.label} plan.`);
+      renderPlanModal();
+    });
+  });
+}
+
+/* ---------------------------------------------------------------------
+   Checkout — opened from a paid plan's "Upgrade to X" button. Shows the
+   payment methods an admin has enabled (with their instructions), lets
+   the viewer pick a duration + method, and submits a pending upgrade
+   request. Nothing here grants the plan directly — an admin approves the
+   request from the dashboard, which is what actually calls setUserPlan.
+   --------------------------------------------------------------------- */
+// Shows the admin-configured account details relevant to a method
+// (bank/wire + bank deposit only — Card Purchase has none to show since
+// the card is entered on the secure payment link, not here).
+function renderCheckoutMethodDetails(m){
+  const f = m.fields || {};
+  let rows = [];
+  if (m.key === 'transfer') {
+    rows = [
+      ['Bank Name', f.bankName], ['Account Name', f.accountName],
+      ['Account Number', f.accountNumber], ['SWIFT / BIC', f.swift], ['Currency', f.currency]
+    ];
+  } else if (m.key === 'bankDeposit') {
+    rows = [
+      ['Bank Name', f.bankName], ['Account Name', f.accountName],
+      ['Account Number', f.accountNumber], ['Branch Code', f.branchCode]
+    ];
+  } else {
+    return '';
+  }
+  rows = rows.filter(([, v]) => v);
+  if (!rows.length) return '';
+  return `<span style="display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-top:6px;font-size:12px;">
+    ${rows.map(([label, val]) => `<span style="color:var(--text-low);">${label}</span><span style="color:var(--text-hi);font-weight:600;">${val}</span>`).join('')}
+  </span>`;
+}
+
+async function openCheckoutModal(planKey){
+  checkoutPlanKey = planKey;
+  const plan = svAuth.getPlan(planKey);
+  checkoutSummary.textContent = `Upgrading to ${plan.label} (${plan.price}). Pick a duration and payment method below — an admin will confirm your payment and activate the plan.`;
+  coMonths.value = 1;
+  coNote.value = '';
+  checkoutStatus.textContent = '';
+  submitCheckoutBtn.disabled = false;
+  submitCheckoutBtn.textContent = 'Submit Request';
+  resetProofField();
+
+  coMethodList.innerHTML = '<p class="card-sub">Loading payment methods…</p>';
+  checkoutModalOverlay.classList.add('open');
+
+  checkoutMethods = await svAuth.getPaymentMethods();
+  const enabled = Object.values(checkoutMethods).filter(m => m.enabled);
+  if (enabled.length === 0){
+    coMethodList.innerHTML = '<p class="card-sub">No payment methods are available right now. Please contact support.</p>';
+    submitCheckoutBtn.disabled = true;
+  } else {
+    coMethodList.innerHTML = enabled.map((m, i) => `
+      <label class="checkbox-pill" style="width:100%;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+        <input type="radio" name="coMethod" value="${m.key}" ${i === 0 ? 'checked' : ''} style="margin-top:3px;">
+        <span>
+          <span style="display:block;">${m.label}</span>
+          <span style="display:block;font-weight:400;font-size:12px;color:var(--text-low);margin-top:2px;">${m.instructions || ''}</span>
+          ${renderCheckoutMethodDetails(m)}
+        </span>
+      </label>
+    `).join('');
+  }
+  updateCheckoutTotal();
+}
+
+function updateCheckoutTotal(){
+  const plan = svAuth.getPlan(checkoutPlanKey);
+  const months = Math.max(1, parseInt(coMonths.value, 10) || 1);
+  const unitPrice = parseFloat(String(plan.price).replace(/[^0-9.]/g, '')) || 0;
+  const total = (unitPrice * months).toFixed(2);
+  coTotalPreview.textContent = `${plan.price} × ${months} month${months === 1 ? '' : 's'} = ${svAuth.getBillingCurrencySymbol()}${total} total`;
+}
+coMonths.addEventListener('input', updateCheckoutTotal);
+
+function resetProofField(){
+  pendingProofData = null;
+  coProofFileInput.value = '';
+  coProofFileName.textContent = '';
+  coProofRemoveBtn.style.display = 'none';
+  coProofHint.textContent = COPROOF_HINT_DEFAULT;
+}
+
+coProofChooseBtn.addEventListener('click', () => coProofFileInput.click());
+
+coProofRemoveBtn.addEventListener('click', () => {
+  resetProofField();
+});
+
+coProofFileInput.addEventListener('change', () => {
+  const file = coProofFileInput.files && coProofFileInput.files[0];
+  if (!file) return;
+
+  const isPdf = file.type === 'application/pdf';
+  const isJpg = /^image\/(jpeg|jpg)$/.test(file.type);
+  if (!isPdf && !isJpg) {
+    coProofHint.textContent = 'Please choose a PDF or JPG file.';
+    coProofFileInput.value = '';
+    return;
+  }
+  if (file.size > MAX_PROOF_BYTES) {
+    coProofHint.textContent = 'That file is too large — please choose one under 650KB.';
+    coProofFileInput.value = '';
+    return;
+  }
+
+  coProofHint.textContent = 'Processing file…';
+  coProofFileName.textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingProofData = { dataUrl: reader.result, type: file.type, name: file.name };
+    coProofRemoveBtn.style.display = '';
+    coProofHint.textContent = 'Ready to upload with your request.';
+  };
+  reader.onerror = () => {
+    coProofHint.textContent = 'Could not read that file. Please try again.';
+    pendingProofData = null;
+    coProofFileInput.value = '';
+    coProofFileName.textContent = '';
+  };
+  reader.readAsDataURL(file);
+});
+
+function closeCheckoutModal(){
+  checkoutModalOverlay.classList.remove('open');
+}
+document.getElementById('closeCheckoutBtn').addEventListener('click', closeCheckoutModal);
+checkoutModalOverlay.addEventListener('click', (e) => { if (e.target === checkoutModalOverlay) closeCheckoutModal(); });
+
+submitCheckoutBtn.addEventListener('click', async () => {
+  const selected = coMethodList.querySelector('input[name="coMethod"]:checked');
+  if (!selected){
+    setStatus(checkoutStatus, false, 'Please pick a payment method.');
+    return;
+  }
+  submitCheckoutBtn.disabled = true;
+  submitCheckoutBtn.textContent = 'Submitting…';
+  const result = await svAuth.submitUpgradeRequest(checkoutPlanKey, coMonths.value, selected.value, coNote.value, pendingProofData);
+  if (!result.ok){
+    setStatus(checkoutStatus, false, result.error);
+    submitCheckoutBtn.disabled = false;
+    submitCheckoutBtn.textContent = 'Submit Request';
+    return;
+  }
+  setStatus(checkoutStatus, true, "Request submitted! We'll activate your plan once payment is confirmed.");
+  submitCheckoutBtn.textContent = 'Submitted';
+  setTimeout(closeCheckoutModal, 1500);
+});
+
+function openUpgradeModal(){
+  renderPlanModal();
+  upgradeModalOverlay.classList.add('open');
+}
+function closeUpgradeModal(){
+  upgradeModalOverlay.classList.remove('open');
+}
+
+// Lets upgrade-trigger.js (shared by viewer.js, catalog-render.js,
+// footer-contact.js, etc.) open this modal directly instead of doing a
+// full page redirect when a gated feature is hit while already here.
+window.openUpgradeModalFromTrigger = function(){ openUpgradeModal(); };
+
+openUpgradeBtn.addEventListener('click', openUpgradeModal);
+closeUpgradeBtn.addEventListener('click', closeUpgradeModal);
+upgradeModalOverlay.addEventListener('click', (e) => {
+  if (e.target === upgradeModalOverlay) closeUpgradeModal();
+});
+
+logoutBtn.addEventListener('click', async () => {
+  await svAuth.logout();
+  window.location.href = 'index.html';
+});
+
+// Guarded entry point: only runs once a signed-in user is confirmed.
+svGuard.requireAuth(async (user) => {
+  fillForms(user);
+  renderBadge();
+  // Picks up any admin-set price overrides (see admin Payments → Plan
+  // Pricing) so the plan modal / checkout total reflect the latest rate.
+  // Awaited here (previously fire-and-forget) so that when this page is
+  // opened straight into the upgrade modal — e.g. redirected here from a
+  // gated feature like Second Screen on the viewer page — the modal
+  // always renders with the same up-to-date price as when a signed-in
+  // viewer opens it manually from the Profile page. Without the await,
+  // openUpgradeModal() below could render before the price override
+  // finished loading, showing the stale default plan price instead.
+  await svAuth.refreshPlanPricing();
+
+  // Arriving here via upgrade-trigger.js (a Basic viewer tried to
+  // download, or tapped "Upgrade to Premium" elsewhere) — pop the plan
+  // picker open automatically instead of leaving them to find it.
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgrade') === '1') {
+    openUpgradeModal();
+    // Strip the params so a refresh doesn't reopen the modal every time.
+    params.delete('upgrade');
+    params.delete('reason');
+    const qs = params.toString();
+    history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : ''));
+  }
+});
+</script>
+</body>
+</html>

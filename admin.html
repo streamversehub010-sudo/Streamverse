@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Admin Panel</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="admin-shell">
+
+  <!-- ============================== SIDEBAR ============================== -->
+  <aside class="admin-sidebar">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+        </svg>
+      </span>
+      <span class="logo-text">Stream<span>Verse</span></span>
+    </a>
+
+    <a class="admin-nav-link active" data-panel="dashboard" href="#dashboard">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Live Dashboard
+    </a>
+    <a class="admin-nav-link" data-panel="content" href="#content">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16M16 4v16"/></svg>
+      Content Library
+    </a>
+    <a class="admin-nav-link" data-panel="users" href="#users">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Viewer Accounts
+    </a>
+    <a class="admin-nav-link" data-panel="payments" href="#payments">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+      Payments
+    </a>
+    <a class="admin-nav-link" data-panel="activity" href="#activity">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Activity Log
+    </a>
+    <a class="admin-nav-link" data-panel="broadcast" href="#broadcast">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11v2a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8a4 4 0 0 1 0 8"/><path d="M18 5a8 8 0 0 1 0 14"/></svg>
+      Broadcast
+    </a>
+    <a class="admin-nav-link" data-panel="support" href="#support">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Support Contact
+    </a>
+    <a class="admin-nav-link" data-panel="messages" href="#messages">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+      Contact Messages
+    </a>
+
+    <div class="admin-sidebar-footer">
+      <div class="admin-nav-link" id="adminWhoami" style="cursor:default;"></div>
+      <a class="admin-nav-link" href="#" id="adminLogout">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Log Out
+      </a>
+    </div>
+  </aside>
+
+  <!-- ============================== MAIN ============================== -->
+  <main class="admin-main">
+
+    <!-- ---------- Dashboard panel ---------- -->
+    <section class="admin-panel active" id="panel-dashboard">
+      <div class="admin-topbar">
+        <div>
+          <h1>Live Operations</h1>
+          <p>Real-time snapshot of what's streaming on StreamVerse right now.</p>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card live">
+          <div class="stat-label"><span class="pulse-dot"></span>Active Streams</div>
+          <div class="stat-value" id="statActiveStreams">0</div>
+          <div class="stat-sub">titles live right now</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Concurrent Viewers</div>
+          <div class="stat-value" id="statConcurrentViewers">0</div>
+          <div class="stat-sub">across all live titles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Catalog Size</div>
+          <div class="stat-value" id="statCatalogSize">0</div>
+          <div class="stat-sub">movies &amp; series</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Registered Viewers</div>
+          <div class="stat-value" id="statUserCount">0</div>
+          <div class="stat-sub" id="statUserSub">0 active accounts</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Streams Live Right Now</h2>
+            <p>Viewer counts tick every few seconds to simulate real traffic.</p>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="liveTable">
+            <thead><tr><th>Title</th><th>Started</th><th>Concurrent Viewers</th><th>Action</th></tr></thead>
+            <tbody id="liveTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="liveEmpty" style="display:none;">Nothing is live. Go to Content Library to start a stream.</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Start / End a Stream</h2>
+            <p>Toggle any title live to simulate a broadcast operation.</p>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="quickToggleTable">
+            <thead><tr><th>Title</th><th>Genre</th><th>Status</th><th>Live</th></tr></thead>
+            <tbody id="quickToggleBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Content panel ---------- -->
+    <section class="admin-panel" id="panel-content">
+      <div class="admin-topbar">
+        <div>
+          <h1>Content Library</h1>
+          <p>Add, edit, or remove movies and series from the StreamVerse catalog.</p>
+        </div>
+        <button class="btn-admin" id="addTitleBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+          Add New Title
+        </button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Trending Slideshow Order</h2>
+            <p>Drag to reorder titles marked <strong>Trending</strong> — this is the order they play in the homepage carousel.</p>
+          </div>
+        </div>
+        <div id="trendingOrderList" class="trending-order-list"></div>
+        <div class="empty-state" id="trendingOrderEmpty" style="display:none;">No titles are marked Trending yet. Edit a title and check "Trending" in Movie Settings to add it here.</div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>All Titles</h2>
+            <p id="contentCount"></p>
+          </div>
+          <button class="btn-admin ghost small" id="resetCatalogBtn">Reset to defaults</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th></th><th>Title</th><th>Genre</th><th>Category</th><th>Year</th><th>Rating</th><th>Type</th><th>Stream</th><th>Actions</th></tr></thead>
+            <tbody id="contentTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Users panel ---------- -->
+    <section class="admin-panel" id="panel-users">
+      <div class="admin-topbar">
+        <div>
+          <h1>Viewer Accounts</h1>
+          <p>Everyone who has created a StreamVerse account on this browser.</p>
+        </div>
+      </div>
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>All Accounts</h2>
+            <p id="userCount"></p>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Plan</th><th>Plan Expires</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Payments panel ---------- -->
+    <section class="admin-panel" id="panel-payments">
+      <div class="admin-topbar">
+        <div>
+          <h1>Payments</h1>
+          <p>Control which checkout payment methods viewers can use, and review/approve pending plan upgrade requests.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Plan Pricing</h2>
+            <p>Set the monthly billing price for each paid plan. Updates apply immediately across the site.</p>
+          </div>
+        </div>
+        <div id="planPricingEditor" class="plan-price-grid"><!-- injected by JS --></div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="btn-admin" id="savePlanPricingBtn">Save Pricing</button>
+          <span class="account-status" id="planPricingStatus"></span>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Checkout Payment Methods</h2>
+            <p>Toggle a method on/off and edit its label, instructions, and account details. Changes apply immediately to every viewer's checkout.</p>
+          </div>
+        </div>
+        <div id="paymentMethodsEditor"><!-- injected by JS --></div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="btn-admin" id="savePaymentMethodsBtn">Save Payment Methods</button>
+          <span class="account-status" id="paymentMethodsStatus"></span>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Upgrade Requests</h2>
+            <p id="upgradeRequestCount"></p>
+          </div>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Plan</th><th>Months</th><th>Method</th><th>Note</th><th>Proof</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
+            <tbody id="upgradeRequestsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Activity panel ---------- -->
+    <section class="admin-panel" id="panel-activity">
+      <div class="admin-topbar">
+        <div>
+          <h1>Activity Log</h1>
+          <p>Logins, content changes, and moderation actions across StreamVerse.</p>
+        </div>
+        <button class="btn-admin ghost small" id="clearLogBtn">Clear log</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Activity Logging Bot</h2>
+            <p id="logBotStatusText">Records every login, logout, content change, and moderation action automatically. Turn off to pause new entries — existing history is kept either way.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="logBotToggle">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="log-list" id="logList"></div>
+      </div>
+    </section>
+
+    <!-- ---------- Broadcast panel ---------- -->
+    <section class="admin-panel" id="panel-broadcast">
+      <div class="admin-topbar">
+        <div>
+          <h1>Broadcast</h1>
+          <p>Send a message to every registered user's notification center — downtime notices, an incoming movie, cinema ticket news, or anything else worth announcing.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Live-Stream Notifications</h2>
+            <p>When on, starting a stream from the Live Dashboard also sends "Now streaming live: &lt;title&gt;" to every user's notification panel automatically.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="liveNotifyToggle">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Send a New Broadcast</h2>
+            <p>This appears instantly in every signed-in user's bell — no refresh needed.</p>
+          </div>
+        </div>
+        <form id="broadcastForm" class="form-grid">
+          <div class="form-field">
+            <label>Category</label>
+            <select id="bCategory">
+              <option value="general">General announcement</option>
+              <option value="downtime">Downtime / maintenance</option>
+              <option value="new-movie">New movie incoming</option>
+              <option value="tickets">Cinema ticket news</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Icon (optional emoji)</label>
+            <input type="text" id="bIcon" placeholder="📢 (auto-picked from category if left blank)" maxlength="4">
+          </div>
+          <div class="form-field full">
+            <label>Title</label>
+            <input type="text" id="bTitle" required placeholder="e.g. Scheduled maintenance tonight">
+          </div>
+          <div class="form-field full">
+            <label>Message</label>
+            <textarea id="bBody" placeholder="e.g. StreamVerse will be briefly unavailable from 2–3 AM ET for upgrades."></textarea>
+          </div>
+          <div class="form-field full">
+            <label style="display:flex;align-items:center;gap:8px;font-weight:normal;">
+              <input type="checkbox" id="bSendEmail" style="width:auto;">
+              Also email this to every registered user's inbox (not just the notification bell)
+            </label>
+          </div>
+          <div class="modal-actions" style="grid-column:1/-1;">
+            <button type="submit" class="btn-admin">Send to All Users</button>
+          </div>
+          <p id="bEmailStatus" class="form-field full" style="margin:0;"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Message a User</h2>
+            <p>Sends a one-off email to a single address only — e.g. replying to a support message. Doesn't touch the notification bell and has nothing to do with the broadcast above.</p>
+          </div>
+        </div>
+        <form id="userEmailForm" class="form-grid">
+          <div class="form-field full">
+            <label>Send to</label>
+            <input type="email" id="ueTargetEmail" required placeholder="user@email.com">
+          </div>
+          <div class="form-field full">
+            <label>Subject</label>
+            <input type="text" id="ueSubject" required placeholder="e.g. Re: your support request">
+          </div>
+          <div class="form-field full">
+            <label>Message (HTML allowed)</label>
+            <textarea id="ueBody" required placeholder="<p>Hi [First Name],</p><p>Your message here...</p>"></textarea>
+          </div>
+          <div class="modal-actions" style="grid-column:1/-1;">
+            <button type="submit" class="btn-admin">Send Email</button>
+          </div>
+          <p id="ueStatus" class="form-field full" style="margin:0;"></p>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Sent Broadcasts</h2>
+            <p id="broadcastCount"></p>
+          </div>
+          <button class="btn-admin ghost small" id="clearBroadcastsBtn">Clear all</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th></th><th>Title</th><th>Message</th><th>Category</th><th>Sent</th><th>Actions</th></tr></thead>
+            <tbody id="broadcastTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="broadcastEmpty" style="display:none;">No broadcasts sent yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Support Contact panel ---------- -->
+    <section class="admin-panel" id="panel-support">
+      <div class="admin-topbar">
+        <div>
+          <h1>Support Contact</h1>
+          <p>Controls what viewers see in the "Contact Us" popup (footer, index page). The message form there — feedback &amp; movie requests — is a Premium-plan perk; this info block is shown to everyone.</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Contact Details</h2>
+            <p>Shown at the top of the Contact Us popup.</p>
+          </div>
+        </div>
+        <form id="supportContactForm" class="form-grid">
+          <div class="form-field">
+            <label>Support Email</label>
+            <input type="email" id="scEmail" required placeholder="support@streamverse.example">
+          </div>
+          <div class="form-field">
+            <label>Phone Number (optional)</label>
+            <input type="text" id="scPhone" placeholder="+1 555 123 4567">
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Additional Info</h2>
+            <p>Add any extra rows you want shown — office hours, live chat, mailing address, and so on. Remove any you no longer need.</p>
+          </div>
+          <button type="button" class="btn-admin ghost small" id="scAddFieldBtn">+ Add Field</button>
+        </div>
+        <div id="scExtraFieldsList"></div>
+        <p class="field-hint" id="scExtraEmptyHint">No additional info yet — click "Add Field" to add one (e.g. Label: "Live Chat Hours", Value: "9am–6pm WAT, Mon–Fri").</p>
+      </div>
+
+      <div class="modal-actions" style="justify-content:flex-start;">
+        <button type="button" class="btn-admin" id="scSaveBtn">Save Changes</button>
+        <span class="account-status" id="scStatus"></span>
+      </div>
+    </section>
+
+    <!-- ---------- Contact Messages panel (standalone) ---------- -->
+    <section class="admin-panel" id="panel-messages">
+      <div class="admin-topbar">
+        <div>
+          <h1>Contact Messages</h1>
+          <p>Submissions from the "Contact Us" popup's feedback / movie-request form (open to every visitor, any plan).</p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-head">
+          <div>
+            <h2>Inbox</h2>
+            <p id="contactMsgCount"></p>
+          </div>
+          <button class="btn-admin ghost small" id="clearContactMsgsBtn">Clear all</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th></th><th>From</th><th>Type</th><th>Message</th><th>Plan</th><th>Received</th><th></th><th>Actions</th></tr></thead>
+            <tbody id="contactMsgTableBody"></tbody>
+          </table>
+          <div class="empty-state" id="contactMsgEmpty" style="display:none;">No contact messages yet.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================== EDIT USER PLAN MODAL ============================== -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal-box">
+    <h2 id="planModalHeading">Edit Plan</h2>
+    <p class="card-sub" id="planModalSub" style="margin-top:-8px;"></p>
+    <form id="planForm">
+      <input type="hidden" id="pUid">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Plan</label>
+          <select id="pPlanKey" required>
+            <option value="basic">Basic — Free</option>
+            <option value="standard">Standard — ₦8.99/mo</option>
+            <option value="premium">Premium — ₦14.99/mo</option>
+          </select>
+        </div>
+        <div class="form-field" id="pMonthsField">
+          <label>Duration (months)</label>
+          <input type="number" id="pMonths" min="1" max="36" step="1" value="1">
+        </div>
+      </div>
+      <p class="card-sub" id="pTotalPreview" style="margin-top:4px;"></p>
+      <p id="planFormStatus" style="margin:6px 0 0;font-size:13px;min-height:16px;"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-admin ghost" id="cancelPlanBtn">Cancel</button>
+        <button type="submit" class="btn-admin" id="savePlanBtn">Save Plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================== PROOF OF PAYMENT MODAL ============================== -->
+<div class="modal-overlay" id="proofModal">
+  <div class="modal-box" style="max-width:640px;">
+    <h2 style="margin-bottom:2px;">Proof of Payment</h2>
+    <p class="card-sub" id="proofModalSub" style="margin-bottom:12px;"></p>
+    <div id="proofModalBody" style="max-height:70vh;overflow:auto;border:1px solid var(--border, #333);border-radius:8px;"></div>
+    <div class="modal-actions">
+      <a class="btn-admin ghost" id="proofOpenNewTab" href="#" target="_blank" rel="noopener">Open in New Tab</a>
+      <button type="button" class="btn-admin" id="closeProofBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="contactMsgModal">
+  <div class="modal-box" style="max-width:600px;">
+    <h2 style="margin-bottom:2px;" id="contactMsgModalSubject">Message</h2>
+    <p class="card-sub" id="contactMsgModalMeta" style="margin-bottom:16px;"></p>
+    <div id="contactMsgModalBody"
+         style="white-space:pre-wrap;line-height:1.7;font-size:15px;color:var(--text-hi);
+                background:var(--bg-1);border:1px solid var(--border);border-radius:10px;
+                padding:18px 20px;max-height:55vh;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <a class="btn-admin ghost" id="contactMsgModalReply" href="#">Reply by Email</a>
+      <button type="button" class="btn-admin" id="closeContactMsgBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== ADD / EDIT TITLE MODAL ============================== -->
+<div class="modal-overlay" id="titleModal">
+  <div class="modal-box">
+    <h2 id="titleModalHeading">Add New Title</h2>
+    <form id="titleForm">
+      <input type="hidden" id="editingOriginalId">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Title</label>
+          <input type="text" id="fTitle" required>
+        </div>
+        <div class="form-field">
+          <label>ID (URL slug)</label>
+          <input type="text" id="fId" required placeholder="e.g. my-new-movie">
+        </div>
+        <div class="form-field">
+          <label>Genre</label>
+          <input type="text" id="fGenre" required>
+        </div>
+        <div class="form-field">
+          <label>Category</label>
+          <select id="fCategory" required>
+            <option value="movie">Movie</option>
+            <option value="series">Series</option>
+            <option value="anime">Anime</option>
+            <option value="kdrama">K-Drama</option>
+            <option value="cartoon">Cartoon</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Year / Season</label>
+          <input type="text" id="fYear" required placeholder="2026 or S1">
+        </div>
+        <div class="form-field">
+          <label>Rating</label>
+          <input type="text" id="fRating" required placeholder="8.5">
+        </div>
+        <div class="form-field">
+          <label>Poster Image</label>
+          <!-- The actual value saved to Firestore still lives in #fPoster,
+               same id/name admin.js has always read on submit — it's just
+               hidden now and filled in automatically by admin-poster-upload.js
+               instead of being typed by hand. -->
+          <input type="hidden" id="fPoster" required>
+          <input type="file" id="fPosterFile" accept="image/jpeg,image/png,image/webp,image/gif">
+          <div id="fPosterProgressWrap" style="display:none;margin-top:8px;height:6px;border-radius:3px;background:var(--bg-1,#222);overflow:hidden;">
+            <div id="fPosterProgressBar" style="height:100%;width:0%;background:var(--accent,#e50914);transition:width .15s ease;"></div>
+          </div>
+          <p id="fPosterStatus" style="margin:6px 0 0;font-size:13px;min-height:16px;"></p>
+          <div id="fPosterPreviewWrap" style="display:none;margin-top:8px;">
+            <img id="fPosterPreview" alt="Poster preview" style="max-width:160px;max-height:220px;border-radius:6px;border:1px solid var(--border,#333);display:block;">
+          </div>
+          <p class="field-hint">JPG, PNG, WebP, or GIF — up to 10 MB. Uploads to Cloudinary automatically.</p>
+        </div>
+        <div class="form-field">
+          <label>Backdrop Image URL</label>
+          <input type="url" id="fBackdrop" placeholder="https://... (wide image, used in the Trending carousel)">
+          <p class="field-hint">Used for the homepage Trending carousel. Falls back to the poster if left blank.</p>
+        </div>
+        <div class="form-field full">
+          <label>Description</label>
+          <textarea id="fDescription"></textarea>
+        </div>
+        <div class="form-field">
+          <label>Video URL</label>
+          <input type="url" id="fVideo" placeholder="https://...mp4">
+        </div>
+        <div class="form-field full">
+          <label>Download Link (external, authorized source)</label>
+          <input type="url" id="fDownloadUrl" placeholder="https://legal-authorized-site.com/download/my-movie">
+          <p class="field-hint">The Download button on the viewer page will open this exact URL in a new tab. Leave blank to hide the Download button for this title. Only use links you have the legal right to distribute/point to.</p>
+        </div>
+        <div class="form-field full">
+          <label>Movie Settings</label>
+          <div class="checkbox-row">
+            <label class="checkbox-pill">
+              <input type="checkbox" id="fFeatured">
+              <span>Featured</span>
+            </label>
+            <label class="checkbox-pill">
+              <input type="checkbox" id="fTrending">
+              <span>Trending</span>
+            </label>
+            <label class="checkbox-pill">
+              <input type="checkbox" id="fNewRelease">
+              <span>New Release</span>
+            </label>
+          </div>
+          <p class="field-hint">Only titles marked <strong>Trending</strong> appear in the homepage carousel. Drag to reorder them from the "Trending Slideshow Order" panel below.</p>
+        </div>
+      </div>
+
+      <!-- Seasons & Episodes manager — shown for any non-"movie" category -->
+      <div class="seasons-manager" id="seasonsManager" style="display:none;">
+        <div class="seasons-manager-head">
+          <h3>Seasons &amp; Episodes</h3>
+          <button type="button" class="btn-admin ghost small" id="addSeasonBtn">+ Add Season</button>
+        </div>
+        <div id="seasonsList"></div>
+        <p class="field-hint" id="seasonsEmptyHint">No seasons yet — click "Add Season" to create Season 1, then upload episodes into it.</p>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-admin ghost" id="cancelModalBtn">Cancel</button>
+        <button type="submit" class="btn-admin">Save Title</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="movies-data.js"></script>
+<script src="seasons.js"></script>
+<script type="module" src="firebase-auth.js"></script>
+<script src="store.js"></script>
+<script type="module" src="catalog-firestore.js"></script>
+<script type="module" src="broadcast.js"></script>
+<script type="module" src="contact-messages.js"></script>
+<script type="module" src="support-contact.js"></script>
+<script src="admin-poster-upload.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

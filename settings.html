@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" class="sv-auth-pending">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Web App Settings</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <span class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+      </svg>
+    </span>
+    <span class="logo-text">Stream<span>Verse</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+  </ul>
+  <div class="nav-right">
+    <span id="navNotifSlot"></span>
+    <span id="navAuthSlot"></span>
+  </div>
+</nav>
+
+<!-- ============================== WEB APP SETTINGS ============================== -->
+<!-- This entire page is gated by auth-guard.js: signed-out visitors never
+     see this markup — they're redirected to login.html before paint. -->
+<main class="account-wrap">
+  <div class="account-header">
+    <div>
+      <h1>Web App Settings</h1>
+      <p>Personalize how StreamVerse looks and behaves for your account.</p>
+    </div>
+  </div>
+
+  <div class="account-tabs">
+    <a class="account-tab" href="profile.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </a>
+    <span class="account-tab active">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Web App Settings
+    </span>
+  </div>
+
+  <!-- ------------------------------ Appearance ------------------------------ -->
+  <section class="account-card">
+    <h2>Appearance</h2>
+    <p class="card-sub">Choose how StreamVerse looks on this account.</p>
+
+    <div class="theme-picker" id="themePicker">
+      <button type="button" class="theme-option" data-theme-value="dark">
+        <div class="theme-swatch dark"></div>
+        <div class="theme-option-label">Dark</div>
+      </button>
+      <button type="button" class="theme-option" data-theme-value="light">
+        <div class="theme-swatch light"></div>
+        <div class="theme-option-label">Light</div>
+      </button>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Language</div>
+        <div class="settings-row-desc">Language used across menus and titles.</div>
+      </div>
+      <div class="settings-row-control">
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------ Playback ------------------------------ -->
+  <section class="account-card">
+    <h2>Playback</h2>
+    <p class="card-sub">Controls used by the video player on Watch pages.</p>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Autoplay</div>
+        <div class="settings-row-desc">Automatically play the next episode when one ends.</div>
+      </div>
+      <div class="settings-row-control">
+        <label class="switch">
+          <input type="checkbox" id="autoplayToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Video Quality</div>
+        <div class="settings-row-desc">Higher quality uses more data.</div>
+      </div>
+      <div class="settings-row-control">
+        <select id="qualitySelect">
+          <option value="auto">Auto</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
+          <option value="480p">480p</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------ Notifications ------------------------------ -->
+  <section class="account-card">
+    <h2>Notifications</h2>
+    <p class="card-sub">Choose what StreamVerse can notify you about.</p>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Email Notifications</div>
+        <div class="settings-row-desc">New releases, account activity, and updates.</div>
+      </div>
+      <div class="settings-row-control">
+        <label class="switch">
+          <input type="checkbox" id="notifyEmailToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Push Notifications</div>
+        <div class="settings-row-desc">Browser alerts for new episodes and releases.</div>
+      </div>
+      <div class="settings-row-control">
+        <label class="switch">
+          <input type="checkbox" id="notifyPushToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------ Privacy ------------------------------ -->
+  <section class="account-card">
+    <h2>Privacy</h2>
+    <p class="card-sub">Control what other viewers can see about your account.</p>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Private Profile</div>
+        <div class="settings-row-desc">Hide your profile details from other viewers.</div>
+      </div>
+      <div class="settings-row-control">
+        <label class="switch">
+          <input type="checkbox" id="privateProfileToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-row-label">Show Watch Activity</div>
+        <div class="settings-row-desc">Let StreamVerse display what you're currently watching.</div>
+      </div>
+      <div class="settings-row-control">
+        <label class="switch">
+          <input type="checkbox" id="showActivityToggle">
+          <span class="switch-track"></span>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <div class="account-save-bar" style="margin-bottom:22px;">
+    <button type="button" class="auth-submit" style="width:auto;padding:12px 26px;" id="settingsSaveBtn">Save Settings</button>
+    <span class="account-status" id="settingsStatus"></span>
+  </div>
+
+  <!-- ------------------------------ Account management ------------------------------ -->
+  <section class="account-card">
+    <h2>Account Management</h2>
+    <p class="card-sub">Quick links for managing your account.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a class="btn-admin secondary" href="profile.html">Edit Profile</a>
+      <button class="btn-admin secondary" id="settingsLogoutBtn">Log Out</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------ Danger zone ------------------------------ -->
+  <section class="account-card danger-zone">
+    <h2>Delete Account</h2>
+    <p class="card-sub">This permanently removes your profile and sign-in access. This cannot be undone.</p>
+    <div class="form-field" style="max-width:320px;">
+      <label>Confirm Password</label>
+      <input type="password" id="deleteConfirmPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn-admin danger" id="deleteAccountBtn">Delete My Account</button>
+    <span class="account-status" id="deleteStatus"></span>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-bottom">
+      <span>© 2026 StreamVerse. All Rights Reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="movies-data.js"></script>
+<script type="module" src="firebase-auth.js"></script>
+<script src="store.js"></script>
+<script src="auth-guard.js"></script>
+<script type="module" src="broadcast.js"></script>
+<!-- Notification bell (badge unlocks, account alerts) -->
+<script src="notifications.js"></script>
+<!-- Auto-notifies a viewer when an admin upgrades their plan -->
+<script type="module" src="plan-notify.js"></script>
+<script src="nav-auth.js"></script>
+
+<script>
+/* =========================================================================
+   Settings page logic
+   - Reads/writes svAuth.getSettings() / updateSettings(), which are
+     persisted per-account in Firestore (users/{uid}.settings).
+   - Theme is applied live (data-theme attribute) as soon as it's picked,
+     and mirrored to localStorage by updateSettings so future page loads
+     (via theme.js) don't flash the old theme first.
+   ========================================================================= */
+
+const themePicker      = document.getElementById('themePicker');
+const languageSelect    = document.getElementById('languageSelect');
+const autoplayToggle    = document.getElementById('autoplayToggle');
+const qualitySelect     = document.getElementById('qualitySelect');
+const notifyEmailToggle = document.getElementById('notifyEmailToggle');
+const notifyPushToggle  = document.getElementById('notifyPushToggle');
+const privateProfileToggle = document.getElementById('privateProfileToggle');
+const showActivityToggle   = document.getElementById('showActivityToggle');
+const settingsStatus    = document.getElementById('settingsStatus');
+
+let selectedTheme = 'dark';
+
+function setStatus(el, ok, msg){
+  el.textContent = msg;
+  el.classList.remove('ok','err');
+  el.classList.add('show', ok ? 'ok' : 'err');
+  if (ok) setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function paintThemePicker(theme){
+  selectedTheme = theme;
+  themePicker.querySelectorAll('.theme-option').forEach((el) => {
+    el.classList.toggle('selected', el.dataset.themeValue === theme);
+  });
+}
+
+function applyThemeLive(theme){
+  if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+}
+
+themePicker.addEventListener('click', (e) => {
+  const opt = e.target.closest('.theme-option');
+  if (!opt) return;
+  paintThemePicker(opt.dataset.themeValue);
+  applyThemeLive(opt.dataset.themeValue);
+});
+
+function fillSettings(settings){
+  paintThemePicker(settings.theme);
+  applyThemeLive(settings.theme);
+  languageSelect.value = settings.language;
+  autoplayToggle.checked = !!settings.autoplay;
+  qualitySelect.value = settings.videoQuality;
+  notifyEmailToggle.checked = !!settings.notifyEmail;
+  notifyPushToggle.checked = !!settings.notifyPush;
+  privateProfileToggle.checked = !!settings.privateProfile;
+  showActivityToggle.checked = !!settings.showActivity;
+}
+
+document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('settingsSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const result = await svAuth.updateSettings({
+    theme: selectedTheme,
+    language: languageSelect.value,
+    autoplay: autoplayToggle.checked,
+    videoQuality: qualitySelect.value,
+    notifyEmail: notifyEmailToggle.checked,
+    notifyPush: notifyPushToggle.checked,
+    privateProfile: privateProfileToggle.checked,
+    showActivity: showActivityToggle.checked
+  });
+  btn.disabled = false; btn.textContent = 'Save Settings';
+  if (!result.ok) return setStatus(settingsStatus, false, result.error);
+  setStatus(settingsStatus, true, 'Settings saved.');
+});
+
+document.getElementById('settingsLogoutBtn').addEventListener('click', async () => {
+  await svAuth.logout();
+  window.location.href = 'index.html';
+});
+
+document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+  const pw = document.getElementById('deleteConfirmPassword').value;
+  const deleteStatus = document.getElementById('deleteStatus');
+  if (!pw) return setStatus(deleteStatus, false, 'Enter your current password to confirm.');
+  if (!confirm('This will permanently delete your StreamVerse account. Continue?')) return;
+  const btn = document.getElementById('deleteAccountBtn');
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  const result = await svAuth.deleteAccount(pw);
+  btn.disabled = false; btn.textContent = 'Delete My Account';
+  if (!result.ok) return setStatus(deleteStatus, false, result.error);
+  window.location.href = 'index.html';
+});
+
+// Guarded entry point: only signed-in users ever reach fillSettings().
+svGuard.requireAuth(async () => {
+  const settings = await svAuth.getSettings();
+  fillSettings(settings);
+});
+</script>
+</body>
+</html>

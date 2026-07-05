@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Browse</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================== NAVBAR ============================== -->
+<nav class="navbar">
+  <div class="logo">
+    <span class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+      </svg>
+    </span>
+    <span class="logo-text">Stream<span>Verse</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7a7a82" stroke-width="2">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Search this category...">
+    </div>
+    <span id="navNotifSlot"></span>
+    <span id="navAuthSlot"></span>
+  </div>
+</nav>
+
+<div class="category-page-wrap">
+  <a class="back-link" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    Back to browsing
+  </a>
+
+  <div class="section-heading">
+    <span class="bar"></span>
+    <h2 id="categoryHeading">Browse</h2>
+  </div>
+
+  <main class="movie-grid" id="categoryGrid"></main>
+
+  <div class="not-found" id="emptyState" style="display:none;">
+    <h2>Nothing here yet.</h2>
+    <p>No titles are in this category right now — check back soon.</p>
+    <br>
+    <a href="index.html">← Back to StreamVerse</a>
+  </div>
+</div>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="logo">
+        <span class="logo-mark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+          </svg>
+        </span>
+        <span class="logo-text">Stream<span>Verse</span></span>
+      </div>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="category.html?cat=movie" target="_blank" rel="noopener noreferrer">Movies</a></li>
+        <li><a href="category.html?cat=series" target="_blank" rel="noopener noreferrer">Series</a></li>
+        <li><a href="category.html?cat=anime" target="_blank" rel="noopener noreferrer">Anime</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+        <li><a href="dmca.html">DMCA</a></li>
+      </ul>
+    </div>
+    <p class="footer-legal">
+      StreamVerse is intended to provide information and access to legally authorized content only.
+      All trademarks, logos, images, and copyrighted materials belong to their respective owners.
+      By using this website, you agree to our <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>.
+    </p>
+    <div class="footer-bottom">
+      <span>© 2026 StreamVerse. All Rights Reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- Shared movie database -->
+<script src="movies-data.js"></script>
+<script src="seasons.js"></script>
+<!-- Firebase Authentication (accounts, sessions, roles) -->
+<script type="module" src="firebase-auth.js"></script>
+<script src="upgrade-trigger.js"></script>
+<!-- Catalog / live-ops / activity-log data store (localStorage-backed demo) -->
+<script src="store.js"></script>
+<!-- Real-time Firestore-backed movie catalog (syncs across devices) -->
+<script type="module" src="catalog-firestore.js"></script>
+<script type="module" src="broadcast.js"></script>
+<!-- Shared card-rendering helpers (also used by index.html) -->
+<script src="catalog-render.js"></script>
+<!-- Notification bell (badge unlocks, account alerts) -->
+<script src="notifications.js"></script>
+<!-- Auto-notifies a viewer when an admin upgrades their plan -->
+<script type="module" src="plan-notify.js"></script>
+
+<script>
+/* =========================================================================
+   category.html
+   Full grid of every title in one category — reached via a row's
+   "View All" link on the homepage (opens in a new tab, ?cat=<category>).
+   ========================================================================= */
+
+const params   = new URLSearchParams(window.location.search);
+const category = params.get('cat') || 'all';
+
+const headingEl    = document.getElementById('categoryHeading');
+const gridEl       = document.getElementById('categoryGrid');
+const emptyStateEl = document.getElementById('emptyState');
+const searchInputEl = document.getElementById('searchInput');
+
+document.title = `StreamVerse — ${CATEGORY_HEADINGS[category] || 'Browse'}`;
+headingEl.textContent = CATEGORY_HEADINGS[category] || 'Browse';
+
+let liveMovies = {};
+let lastKey = null;
+
+function render(){
+  const q = searchInputEl.value.trim().toLowerCase();
+  let list = category === 'all' ? liveMovies : filterByCategory(liveMovies, category);
+  if (q) list = filterMovies(list, q);
+
+  const key = JSON.stringify(list);
+  if (key === lastKey) return;
+  lastKey = key;
+
+  const items = Object.values(list);
+  gridEl.style.display = items.length ? '' : 'none';
+  emptyStateEl.style.display = items.length ? 'none' : 'block';
+  gridEl.innerHTML = items.map(renderMovieCard).join('');
+}
+
+searchInputEl.addEventListener('input', debounce(render, 150));
+
+function initCatalog(){
+  svCatalog.subscribe((movies) => {
+    liveMovies = movies;
+    render();
+  });
+}
+if (window.svCatalog) initCatalog();
+else window.addEventListener('svCatalogReady', initCatalog, { once: true });
+</script>
+<!-- Renders the login pill / account menu into the navbar -->
+<script src="nav-auth.js"></script>
+</body>
+</html>

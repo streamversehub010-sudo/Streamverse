@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Second Screen</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<style>
+  body {
+    margin: 0;
+    background: #000;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+  video { width: 100%; height: 100%; object-fit: contain; }
+  #waiting {
+    color: #9aa0a6;
+    font-size: 16px;
+    text-align: center;
+    padding: 0 24px;
+    line-height: 1.6;
+  }
+  #tapOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 10;
+  }
+  #tapOverlay.show { display: flex; }
+  #tapOverlay button {
+    background: #4f9dff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 26px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #tapOverlay span { color: #cfd3da; font-size: 13px; }
+  #errBanner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: #ff6b6b;
+    color: #1a0000;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px 12px;
+    display: none;
+    z-index: 20;
+  }
+  #errBanner.show { display: block; }
+  #bgBadge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(79,157,255,0.9);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    display: none;
+    z-index: 15;
+  }
+  #bgBadge.show { display: block; }
+  #ctrlBar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+    z-index: 12;
+  }
+  #ctrlBar.show { display: flex; }
+  #rPlayPauseBtn {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #4f9dff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #rCurTime, #rDuration {
+    flex: none;
+    color: #e8eaed;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    min-width: 34px;
+  }
+  #rDuration { text-align: right; }
+  #rSeek {
+    flex: 1;
+    accent-color: #4f9dff;
+    cursor: pointer;
+  }
+  #rFullscreenBtn {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  #rSkipBackBtn, #rSkipFwdBtn {
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  #rSpeedSelect {
+    flex: none;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #hostCodePanel {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: #cfd3da;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    opacity: 0;
+    transform: scale(0.97);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  #hostCodePanel.show { display: flex; }
+  #hostCodePanel.visible { opacity: 1; transform: scale(1); }
+  video#receiverVideo {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  video#receiverVideo.visible { opacity: 1; }
+  #connectBadge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(0,0,0,0.8);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    z-index: 25;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  #connectBadge.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #connectBadge.ok { color: #6bd88a; border-color: rgba(107,216,138,0.4); }
+  #connectBadge.err { color: #ff8a8a; border-color: rgba(255,138,138,0.4); }
+  .hcLabel { font-size: 15px; color: #9aa0a6; }
+  .hcCode {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #4f9dff;
+    background: rgba(79,157,255,0.1);
+    border: 1px solid rgba(79,157,255,0.35);
+    border-radius: 12px;
+    padding: 10px 26px;
+  }
+  .hcRow { display: flex; gap: 10px; }
+  .hcRow button {
+    background: #23262f;
+    color: #e8eaed;
+    border: 1px solid #2f333d;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .hcRow button:hover { background: #2c303a; }
+  .hcStatus { font-size: 13px; color: #9aa0a6; }
+  .hcStatus.ok { color: #6bd88a; }
+  #hcGenerateBtn {
+    display: none;
+    background: #4f9dff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #hostCodePanel.needsGenerate #hcGenerateBtn { display: inline-flex; }
+  #hostCodePanel.needsGenerate #hcDetails { display: none; }
+  #hcDetails { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+</style>
+</head>
+<body>
+  <div id="errBanner"></div>
+  <div id="connectBadge"></div>
+  <div id="bgBadge">▶ Playing independently — sender backgrounded</div>
+  <div id="waiting">Waiting for connection from remote…</div>
+  <div id="hostCodePanel">
+    <span class="hcLabel" id="hcIntro">Enter this code on the main device:</span>
+    <button id="hcGenerateBtn" type="button">🔗 Generate Code</button>
+    <div id="hcDetails">
+      <div class="hcCode" id="hcCode">-----</div>
+      <div class="hcRow">
+        <button id="hcCopyBtn" type="button">Copy code</button>
+        <button id="hcRegenBtn" type="button">New code</button>
+      </div>
+      <span class="hcStatus" id="hcStatus">Waiting for a device to connect…</span>
+    </div>
+  </div>
+  <!-- Subtitle track src is set dynamically by the sender (StreamVerse
+       viewer.js -> cast.js) via the sync payload, so whatever caption
+       language is active on the sender carries over here. -->
+  <video id="receiverVideo" playsinline style="display:none;">
+    <track id="receiverTrack" kind="subtitles" srclang="en" label="English">
+  </video>
+  <div id="tapOverlay">
+    <button id="tapPlayBtn">▶ Tap to Start Playback</button>
+    <span>Browsers block autoplay with sound until you tap once</span>
+  </div>
+  <div id="ctrlBar">
+    <button id="rSkipBackBtn" aria-label="Rewind 10 seconds">⏪</button>
+    <button id="rPlayPauseBtn" aria-label="Play/Pause">▶</button>
+    <button id="rSkipFwdBtn" aria-label="Forward 10 seconds">⏩</button>
+    <span id="rCurTime">0:00</span>
+    <input id="rSeek" type="range" min="0" max="0" step="0.1" value="0" aria-label="Seek">
+    <span id="rDuration">0:00</span>
+    <select id="rSpeedSelect" aria-label="Playback speed">
+      <option value="0.5">0.5x</option>
+      <option value="0.75">0.75x</option>
+      <option value="1" selected>1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="2">2x</option>
+    </select>
+    <button id="rFullscreenBtn" aria-label="Full screen">⛶</button>
+  </div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+const initialSrc = params.get('src');
+const pairCode = params.get('pair');
+const initialTitle = params.get('title');
+if (initialTitle) document.title = `StreamVerse — ${initialTitle}`;
+const receiverTrack = document.getElementById('receiverTrack');
+let lastSubs = null;
+const videoEl = document.getElementById('receiverVideo');
+const waitingEl = document.getElementById('waiting');
+const tapOverlay = document.getElementById('tapOverlay');
+const tapPlayBtn = document.getElementById('tapPlayBtn');
+const errBanner = document.getElementById('errBanner');
+const bgBadge = document.getElementById('bgBadge');
+const ctrlBar = document.getElementById('ctrlBar');
+const rPlayPauseBtn = document.getElementById('rPlayPauseBtn');
+const rSeek = document.getElementById('rSeek');
+const rCurTime = document.getElementById('rCurTime');
+const rDuration = document.getElementById('rDuration');
+const rFullscreenBtn = document.getElementById('rFullscreenBtn');
+const rSkipBackBtn = document.getElementById('rSkipBackBtn');
+const rSkipFwdBtn = document.getElementById('rSkipFwdBtn');
+const rSpeedSelect = document.getElementById('rSpeedSelect');
+const hostCodePanel = document.getElementById('hostCodePanel');
+const hcIntro = document.getElementById('hcIntro');
+const hcGenerateBtn = document.getElementById('hcGenerateBtn');
+const hcCode = document.getElementById('hcCode');
+const hcStatus = document.getElementById('hcStatus');
+const hcCopyBtn = document.getElementById('hcCopyBtn');
+const hcRegenBtn = document.getElementById('hcRegenBtn');
+
+// Self-hosting: generate our own pairing code and wait for the main device
+// to connect straight to it (via the "Already have a code?" box on
+// index.html). Same code format/charset as the sender-generated QR-flow
+// codes, so either side can be the one that creates it. Reused by:
+//  - the standalone "no params" open (auto-starts immediately), and
+//  - a failed QR/link pairing, as a one-tap recovery instead of a dead end.
+let hostPeer = null;
+function startHosting() {
+  hostCodePanel.classList.remove('needsGenerate');
+  revealHostPanel();
+  waitingEl.style.display = 'none';
+  if (hostPeer && !hostPeer.destroyed) hostPeer.destroy();
+
+  const code = Math.random().toString(36).slice(2, 7).toUpperCase();
+  hcCode.textContent = code;
+  hcStatus.textContent = 'Waiting for a device to connect…';
+  hcStatus.classList.remove('ok');
+  hostPeer = new Peer(`svcast-${code}`, { config: RTC_CONFIG, debug: 1 });
+
+  hostPeer.on('connection', (conn) => {
+    conn.on('open', () => {
+      activeChannel = conn;
+      hcStatus.textContent = 'Connected — waiting for playback…';
+      hcStatus.classList.add('ok');
+      flashConnectBadge('✓ Connected', 'ok');
+      hideHostPanel();
+    });
+    conn.on('data', (data) => handleChannelMessage(data, conn));
+    conn.on('close', () => {
+      if (activeChannel === conn) activeChannel = null;
+      hcStatus.textContent = 'Remote disconnected. Code still active — reconnect anytime.';
+      hcStatus.classList.remove('ok');
+      flashConnectBadge('✕ Disconnected', 'err');
+      videoEl.classList.remove('visible');
+      setTimeout(() => { videoEl.style.display = 'none'; }, 400);
+      ctrlBar.classList.remove('show');
+      revealHostPanel();
+    });
+  });
+
+  hostPeer.on('error', (err) => {
+    console.error('Self-hosting error:', err);
+    hcStatus.textContent = 'Could not start pairing — tap "New code" to retry.';
+  });
+}
+
+hcGenerateBtn.addEventListener('click', startHosting);
+hcCopyBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(hcCode.textContent);
+    const original = hcCopyBtn.textContent;
+    hcCopyBtn.textContent = 'Copied!';
+    setTimeout(() => { hcCopyBtn.textContent = original; }, 1500);
+  } catch (e) {}
+});
+hcRegenBtn.addEventListener('click', startHosting);
+
+// Shows the panel in its "tap to generate" state — used when an existing
+// pairing attempt (QR/link code) fails, as a fallback instead of a dead end.
+function offerGenerateCode(intro) {
+  hcIntro.textContent = intro || 'Enter this code on the main device:';
+  hostCodePanel.classList.add('needsGenerate');
+  revealHostPanel();
+  waitingEl.style.display = 'none';
+}
+
+// Full-screens the whole body (video + control bar stay together and
+// reachable) rather than just the bare <video> element.
+function getFullscreenElement() {
+  return document.fullscreenElement || document.webkitFullscreenElement || null;
+}
+async function toggleFullscreen() {
+  try {
+    if (getFullscreenElement()) {
+      if (document.exitFullscreen) await document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      return;
+    }
+    if (document.body.requestFullscreen) await document.body.requestFullscreen();
+    else if (document.body.webkitRequestFullscreen) document.body.webkitRequestFullscreen();
+    else if (videoEl.webkitEnterFullscreen) videoEl.webkitEnterFullscreen(); // iOS Safari
+    else if (videoEl.requestFullscreen) await videoEl.requestFullscreen();
+  } catch (err) {
+    console.warn('Full screen request failed:', err);
+  }
+}
+rFullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', () => {
+  rFullscreenBtn.textContent = getFullscreenElement() ? '⤢' : '⛶';
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  rFullscreenBtn.textContent = getFullscreenElement() ? '⤢' : '⛶';
+});
+
+// Whichever channel (Presentation API connection or PeerJS data connection)
+// is currently live — used to relay this device's own play/pause/seek
+// actions back to the main device so both stay in sync either direction.
+let activeChannel = null;
+function sendCommand(cmd) {
+  if (!activeChannel) return;
+  try { activeChannel.send(JSON.stringify(Object.assign({ action: 'remote-command' }, cmd))); } catch (e) {}
+}
+
+// Free public TURN servers (Open Relay Project) so the connection still
+// works when both devices are behind NAT/firewalls that block direct
+// peer-to-peer traffic (common on phone hotspots, guest wifi, some
+// corporate/carrier networks). STUN alone often fails in exactly this
+// scenario, which is what was causing the "connects then black-screens"
+// behavior.
+const RTC_CONFIG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    }
+  ]
+};
+
+let pendingPlay = false;
+
+function showError(msg) {
+  errBanner.textContent = msg;
+  errBanner.classList.add('show');
+  setTimeout(() => errBanner.classList.remove('show'), 4000);
+}
+
+const connectBadge = document.getElementById('connectBadge');
+let connectBadgeTimer = null;
+function flashConnectBadge(text, kind) {
+  clearTimeout(connectBadgeTimer);
+  connectBadge.textContent = text;
+  connectBadge.className = 'show' + (kind ? ' ' + kind : '');
+  connectBadgeTimer = setTimeout(() => connectBadge.classList.remove('show'), 1800);
+}
+
+// Smoothly fades the pairing-code panel out (instead of an instant swap)
+// once a device connects, and fades it back in if that connection drops -
+// paired with the "Connected"/"Disconnected" badge for a clear moment of
+// feedback either way, rather than a jump-cut between states.
+function hideHostPanel() {
+  hostCodePanel.classList.remove('visible');
+  setTimeout(() => hostCodePanel.classList.remove('show'), 400);
+}
+function revealHostPanel() {
+  hostCodePanel.classList.add('show');
+  requestAnimationFrame(() => hostCodePanel.classList.add('visible'));
+}
+
+function showVideo(src) {
+  if (src && videoEl.src !== src) videoEl.src = src;
+  waitingEl.style.display = 'none';
+  videoEl.style.display = 'block';
+  ctrlBar.classList.add('show');
+  requestAnimationFrame(() => videoEl.classList.add('visible'));
+}
+
+function formatTime(s) {
+  if (!isFinite(s) || s < 0) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60).toString().padStart(2, '0');
+  return `${m}:${sec}`;
+}
+
+let seeking = false;
+
+videoEl.addEventListener('loadedmetadata', () => {
+  rSeek.max = videoEl.duration || 0;
+  rDuration.textContent = formatTime(videoEl.duration);
+});
+videoEl.addEventListener('timeupdate', () => {
+  if (!seeking) rSeek.value = videoEl.currentTime;
+  rCurTime.textContent = formatTime(videoEl.currentTime);
+});
+videoEl.addEventListener('play', () => { rPlayPauseBtn.textContent = '⏸'; });
+videoEl.addEventListener('pause', () => { rPlayPauseBtn.textContent = '▶'; });
+
+// This device's own play/pause button — plays/pauses locally immediately
+// (the click itself is a user gesture, so autoplay policy allows it) and
+// tells the main device to mirror the change.
+rPlayPauseBtn.addEventListener('click', () => {
+  if (videoEl.paused) {
+    attemptPlay();
+    sendCommand({ type: 'play' });
+  } else {
+    videoEl.pause();
+    sendCommand({ type: 'pause' });
+  }
+});
+
+// This device's own seek bar — same idea: seek locally right away, then
+// relay the new position so the main device (and its own local video)
+// jumps to match.
+rSeek.addEventListener('input', () => {
+  seeking = true;
+  rCurTime.textContent = formatTime(rSeek.value);
+});
+rSeek.addEventListener('change', () => {
+  seeking = false;
+  const t = parseFloat(rSeek.value);
+  videoEl.currentTime = t;
+  sendCommand({ type: 'seek', currentTime: t });
+});
+
+rSkipBackBtn.addEventListener('click', () => {
+  const t = Math.max(0, videoEl.currentTime - 10);
+  videoEl.currentTime = t;
+  sendCommand({ type: 'seek', currentTime: t });
+});
+rSkipFwdBtn.addEventListener('click', () => {
+  const max = isFinite(videoEl.duration) ? videoEl.duration : Infinity;
+  const t = Math.min(max, videoEl.currentTime + 10);
+  videoEl.currentTime = t;
+  sendCommand({ type: 'seek', currentTime: t });
+});
+
+rSpeedSelect.addEventListener('change', () => {
+  const rate = parseFloat(rSpeedSelect.value);
+  videoEl.playbackRate = rate;
+  sendCommand({ type: 'rate', rate });
+});
+videoEl.addEventListener('ratechange', () => {
+  rSpeedSelect.value = String(videoEl.playbackRate);
+});
+
+function attemptPlay() {
+  const p = videoEl.play();
+  if (p && p.catch) {
+    p.catch((err) => {
+      // Autoplay blocked - this is the #1 cause of "black screen after
+      // play is initiated". Surface a tap button instead of failing silently.
+      if (err.name === 'NotAllowedError') {
+        pendingPlay = true;
+        tapOverlay.classList.add('show');
+      } else {
+        showError('Playback error: ' + err.message);
+      }
+    });
+  }
+}
+
+function applyState(state) {
+  showVideo(state.src);
+  if (state.title) document.title = `StreamVerse — ${state.title}`;
+  if (state.subs !== undefined && state.subs !== lastSubs) {
+    lastSubs = state.subs;
+    if (state.subs) {
+      receiverTrack.src = state.subs.src;
+      receiverTrack.srclang = state.subs.lang || 'en';
+      receiverTrack.label = state.subs.label || 'Subtitles';
+      if (videoEl.textTracks[0]) videoEl.textTracks[0].mode = 'showing';
+    } else {
+      receiverTrack.removeAttribute('src');
+    }
+  }
+  if (typeof state.currentTime === 'number' && Math.abs(videoEl.currentTime - state.currentTime) > 1) {
+    videoEl.currentTime = state.currentTime;
+  }
+  if (typeof state.rate === 'number' && state.rate !== videoEl.playbackRate) {
+    videoEl.playbackRate = state.rate;
+    rSpeedSelect.value = String(state.rate);
+  }
+  if (state.action === 'play') attemptPlay();
+  if (state.action === 'pause') videoEl.pause();
+}
+
+function reportState(conn) {
+  try {
+    conn.send(JSON.stringify({
+      action: 'sync-response',
+      currentTime: videoEl.currentTime,
+      paused: videoEl.paused,
+      src: videoEl.currentSrc,
+      rate: videoEl.playbackRate
+    }));
+  } catch (e) {}
+}
+
+// Shared by both the Presentation API and PeerJS paths so sync-request /
+// sender-background / play-pause-push messages are all handled the same
+// way regardless of which transport delivered them.
+function handleChannelMessage(raw, conn) {
+  let msg;
+  try { msg = JSON.parse(raw); } catch (err) { console.error('Bad message:', err); return; }
+  if (msg.ping) return;
+  if (msg.action === 'sender-background') {
+    bgBadge.classList.add('show'); // sender is away; we keep playing on our own
+    return;
+  }
+  bgBadge.classList.remove('show'); // any real message means sender is back
+  if (msg.action === 'sync-request') { reportState(conn); return; }
+  applyState(msg);
+}
+
+tapPlayBtn.addEventListener('click', () => {
+  tapOverlay.classList.remove('show');
+  videoEl.muted = false;
+  videoEl.play().catch((err) => showError('Still could not play: ' + err.message));
+  pendingPlay = false;
+});
+
+videoEl.addEventListener('error', () => {
+  const codes = { 1: 'aborted', 2: 'network error', 3: 'decode error', 4: 'source not supported' };
+  showError('Video failed to load: ' + (codes[videoEl.error?.code] || 'unknown error'));
+});
+
+// Path 1: launched as a real Presentation API receiver (Chromecast etc.)
+if (navigator.presentation && navigator.presentation.receiver) {
+  navigator.presentation.receiver.connectionList.then((list) => {
+    list.connections.forEach(wireConnection);
+    list.addEventListener('connectionavailable', (e) => wireConnection(e.connection));
+  });
+
+  function wireConnection(connection) {
+    activeChannel = connection;
+    flashConnectBadge('✓ Connected', 'ok');
+    connection.addEventListener('message', (event) => handleChannelMessage(event.data, connection));
+    connection.addEventListener('close', () => {
+      if (activeChannel === connection) activeChannel = null;
+      flashConnectBadge('✕ Disconnected', 'err');
+      waitingEl.textContent = 'Remote disconnected';
+      waitingEl.style.display = 'block';
+      videoEl.classList.remove('visible');
+      setTimeout(() => { videoEl.style.display = 'none'; }, 400);
+      ctrlBar.classList.remove('show');
+    });
+  }
+}
+// Path 2: opened via QR/link carrying a pairing code — auto-connect over
+// WebRTC with no further taps needed beyond the one-time playback tap
+// required by browser autoplay policy.
+else if (pairCode && typeof Peer !== 'undefined') {
+  waitingEl.textContent = `Connecting to remote (code ${pairCode})…`;
+  const peer = new Peer({ config: RTC_CONFIG, debug: 1 });
+  let heartbeat;
+
+  function attemptConnect() {
+    const conn = peer.connect(`svcast-${pairCode}`, { reliable: true });
+
+    conn.on('open', () => {
+      activeChannel = conn;
+      bgBadge.classList.remove('show');
+      flashConnectBadge('✓ Connected', 'ok');
+      hideHostPanel();
+      waitingEl.textContent = videoEl.style.display === 'block'
+        ? '' : 'Connected — waiting for playback…';
+      // Keep the data channel alive so it doesn't get silently reaped by
+      // NAT timeouts mid-video (another common cause of sudden disconnects)
+      heartbeat = setInterval(() => {
+        try { conn.send(JSON.stringify({ ping: true })); } catch (e) {}
+      }, 15000);
+    });
+
+    conn.on('data', (data) => handleChannelMessage(data, conn));
+
+    conn.on('close', () => {
+      clearInterval(heartbeat);
+      if (activeChannel === conn) activeChannel = null;
+      flashConnectBadge('✕ Disconnected', 'err');
+      // No retry loop — as soon as the connection drops, send this device
+      // straight back to the generate-code screen so a fresh pairing can
+      // be started right away instead of waiting on silent background
+      // retries.
+      offerGenerateCode(`Disconnected from ${pairCode}. Generate a new code to pair again:`);
+    });
+
+    conn.on('error', (err) => {
+      console.error('Connection error:', err);
+      if (activeChannel === conn) activeChannel = null;
+      offerGenerateCode(`Disconnected from ${pairCode}. Generate a new code to pair again:`);
+    });
+  }
+
+  peer.on('open', attemptConnect);
+
+  peer.on('disconnected', () => {
+    showError('Lost signaling connection, attempting to reconnect…');
+    peer.reconnect();
+  });
+
+  peer.on('error', (err) => {
+    console.error('Pairing failed:', err);
+    offerGenerateCode(`That code didn't connect. Generate a new one to pair from this device instead:`);
+  });
+}
+// Path 3: opened manually with just a video src, no pairing — just play it
+else if (initialSrc) {
+  showVideo(initialSrc);
+  videoEl.controls = true;
+  ctrlBar.classList.remove('show'); // native controls are enough with no sender to sync
+}
+// Path 4: opened with no params at all — generate our own code and host,
+// so the main device can connect straight to it via "Enter a code" on
+// index.html, instead of needing a QR/link generated by the sender first.
+else if (typeof Peer !== 'undefined') {
+  startHosting();
+}
+</script>
+</body>
+</html>

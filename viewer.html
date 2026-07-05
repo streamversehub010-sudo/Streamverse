@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Now Playing</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================== NAVBAR ============================== -->
+<nav class="navbar">
+  <div class="logo">
+    <span class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+      </svg>
+    </span>
+    <span class="logo-text">Stream<span>Verse</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html">Movies</a></li>
+    <li><a href="index.html">Series</a></li>
+  </ul>
+  <div class="nav-right"><span id="navNotifSlot"></span><span id="navAuthSlot"></span></div>
+</nav>
+
+<div class="viewer-wrap">
+
+  <a class="back-link" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+    Back to browsing
+  </a>
+
+  <!-- This whole block is filled in by viewer.js once it knows which movie to load -->
+  <div id="viewerContent">
+
+    <!-- Video player -->
+    <div class="player-shell">
+      <video id="videoPlayer" controls preload="metadata">
+        Your browser does not support the video tag.
+      </video>
+
+      <!-- Shown for the last few seconds of an episode when Settings ->
+           Autoplay is on and there's a next episode/season mapped. -->
+      <div class="autoplay-overlay" id="autoplayOverlay">
+        <div class="autoplay-overlay-label">Up Next</div>
+        <div class="autoplay-overlay-body">
+          <img class="autoplay-overlay-thumb" id="autoplayThumb" alt="">
+          <div>
+            <div class="autoplay-overlay-title" id="autoplayTitle"></div>
+            <div class="autoplay-overlay-sub" id="autoplaySub"></div>
+          </div>
+        </div>
+        <div class="autoplay-overlay-progress"><div class="autoplay-overlay-progress-bar" id="autoplayProgressBar"></div></div>
+        <div class="autoplay-overlay-actions">
+          <button type="button" class="autoplay-cancel" id="autoplayCancelBtn">Cancel</button>
+          <button type="button" class="autoplay-play-now" id="autoplayPlayNowBtn">Play Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cast to TV / Second Screen / Connect to PC — works for every title
+         (movies, series, anime, cartoons, k-dramas, sports) since they all
+         play through this one player. Wired up by cast.js. -->
+    <div class="cast-bar">
+      <button type="button" class="cast-bar-btn" id="castBtn" title="Cast to TV (Chromecast / AirPlay)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a9 9 0 0 1 9 9"/><path d="M2 5a13 13 0 0 1 13 13"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><rect x="14" y="4" width="8" height="15" rx="1.5"/></svg>
+        <span>Cast to TV</span>
+      </button>
+      <button type="button" class="cast-bar-btn" id="secondScreenBtn" title="Cast to a TV/tablet over your Wi-Fi network">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="1.5"/><path d="M9 21h6"/><path d="M12 17v4"/></svg>
+        <span>Second Screen</span>
+      </button>
+      <button type="button" class="cast-bar-btn" id="connectPcBtn" title="Connect to a PC over your Wi-Fi network">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="1.5"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        <span>Connect to PC</span>
+      </button>
+      <button type="button" class="cast-bar-btn cast-bar-btn-danger" id="disconnectBtn" title="End the current cast/second-screen connection" style="display:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+        <span>Disconnect</span>
+      </button>
+      <span id="castStatus" class="cast-status">Not connected</span>
+    </div>
+
+    <!-- QR / link pairing panel for Second Screen & Connect to PC -->
+    <div id="castQrPanel" class="cast-panel">
+      <img id="castQrImg" width="120" height="120" alt="QR code to open second screen">
+      <div class="cast-panel-info">
+        <span id="castQrIntro">Scan with a tablet or open on another device:</span><br>
+        <b id="castQrLabel">Second-screen link</b> — <code id="castSecondScreenUrl"></code>
+        <button type="button" id="castCopyLinkBtn" class="cast-copy-btn">Copy link</button>
+        <br>
+        <span id="castQrFooter">Once it connects, this player becomes the remote and the second device shows the synced view.</span>
+      </div>
+    </div>
+
+    <!-- Join an already-open receiver by its short code — collapsed by default -->
+    <div class="cast-join-wrap">
+      <button type="button" id="castJoinToggle" class="cast-join-toggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="cast-join-chevron"><path d="M9 6l6 6-6 6"/></svg>
+        Already have a code?
+      </button>
+      <div id="castJoinPanel" class="cast-join-compact">
+        <input type="text" id="castJoinCodeInput" maxlength="5" placeholder="CODE" autocapitalize="characters" autocomplete="off">
+        <button type="button" id="castJoinCodeBtn" class="cast-bar-btn">Connect</button>
+        <span id="castJoinStatus" class="cast-join-status"></span>
+      </div>
+    </div>
+
+    <!-- Title + description -->
+    <div class="viewer-header">
+      <div class="viewer-title-block">
+        <h1 id="movieTitle">Loading…</h1>
+        <p id="movieDescription"></p>
+        <div class="viewer-meta">
+          <span id="movieYear"></span>
+          <span class="dot"></span>
+          <span id="movieGenre"></span>
+          <span class="dot"></span>
+          <span id="movieRating"><span class="star-icon"></span> <span class="rating-text"></span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Episode / subtitle / download controls -->
+    <div class="viewer-controls">
+
+      <div class="control-group" id="seasonGroup" style="display:none;">
+        <label for="seasonSelect">Season</label>
+        <select id="seasonSelect"></select>
+      </div>
+
+      <div class="control-group" id="episodeSelectGroup" style="display:none;">
+        <label for="episodeSelect">Episode</label>
+        <select id="episodeSelect"></select>
+      </div>
+
+      <div class="control-group">
+        <label for="subtitleSelect">Subtitles</label>
+        <select id="subtitleSelect">
+          <option value="off">Off</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="qualitySelect">Quality</label>
+        <select id="qualitySelect"></select>
+      </div>
+
+      <a class="viewer-download-btn" id="downloadBtn" href="#" style="display:none;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>
+        <span class="dl-label">Download</span>
+        <svg class="dl-external-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+      </a>
+    </div>
+
+    <!-- Episode grid for the currently-selected season (series/anime only) -->
+    <div class="episode-list-section" id="episodeListSection" style="display:none;">
+      <h3 class="episode-list-heading" id="episodeListHeading">Episodes</h3>
+      <div class="episode-grid" id="episodeGrid"></div>
+    </div>
+  </div>
+
+  <!-- Shown instead of the player if the movie id in the URL doesn't exist -->
+  <div class="not-found" id="notFound" style="display:none;">
+    <h2>We couldn't find that title.</h2>
+    <p>The link may be broken or the movie may have been removed.</p>
+    <br>
+    <a href="index.html">← Back to StreamVerse</a>
+  </div>
+
+</div>
+
+<!-- Shared movie database -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js"></script>
+<script src="movies-data.js"></script>
+<script src="seasons.js"></script>
+<!-- Firebase Authentication (accounts, sessions, roles) -->
+<script type="module" src="firebase-auth.js"></script>
+<script src="upgrade-trigger.js"></script>
+<!-- Catalog / live-ops / activity-log data store (localStorage-backed demo) -->
+<script src="store.js"></script>
+<!-- Real-time Firestore-backed movie catalog (syncs across devices) -->
+<script type="module" src="catalog-firestore.js"></script>
+<script type="module" src="broadcast.js"></script>
+<!-- Page logic: reads ?movie= from the URL and wires everything up -->
+<script src="viewer.js"></script>
+<!-- Cast to TV / Second Screen / Connect to PC — PeerJS powers the WebRTC
+     second-screen fallback; the Cast sender SDK powers real Chromecast
+     sessions. cast.js reads/writes the live #videoPlayer + whatever
+     viewer.js just loaded (see window.svCast in cast.js). -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="cast.js"></script>
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+<!-- Tracks watch progress toward the Movie Badge rank (Profile page) -->
+<script src="watch-tracker.js"></script>
+<!-- Notification bell (badge unlocks, account alerts) -->
+<script src="notifications.js"></script>
+<!-- Auto-notifies a viewer when an admin upgrades their plan -->
+<script type="module" src="plan-notify.js"></script>
+<!-- Renders the login pill / account menu into the navbar -->
+<script src="nav-auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Log In</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <span class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+      </svg>
+    </span>
+    <span class="logo-text">Stream<span>Verse</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+  </ul>
+  <div class="nav-right"></div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <h1 id="authTitle">Welcome back</h1>
+    <p class="auth-sub" id="authSub">Log in to keep watching on StreamVerse.</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin">Log In</button>
+      <button class="auth-tab" id="tabSignup">Create Account</button>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <!-- Login form -->
+    <form id="loginForm">
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" id="loginIdentifier" autocomplete="username" required>
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <div class="auth-forgot"><a href="#" id="forgotPasswordLink">Forgot password?</a></div>
+      <button type="submit" class="auth-submit">Log In</button>
+    </form>
+
+    <!-- Signup form -->
+    <form id="signupForm" style="display:none;">
+      <div class="form-field">
+        <label>Username</label>
+        <input type="text" id="signupUsername" autocomplete="username" required>
+      </div>
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" id="signupEmail" autocomplete="email" required>
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <input type="password" id="signupPassword" autocomplete="new-password" required minlength="6">
+      </div>
+      <button type="submit" class="auth-submit">Create Account</button>
+    </form>
+
+    <div class="auth-note">
+      Secured by Firebase Authentication.
+    </div>
+  </div>
+</div>
+
+<script src="movies-data.js"></script>
+<script type="module" src="firebase-auth.js"></script>
+<script src="store.js"></script>
+<script>
+  const tabLogin  = document.getElementById('tabLogin');
+  const tabSignup = document.getElementById('tabSignup');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm= document.getElementById('signupForm');
+  const authTitle = document.getElementById('authTitle');
+  const authSub   = document.getElementById('authSub');
+  const authError = document.getElementById('authError');
+
+  function showError(msg){
+    authError.classList.remove('success');
+    authError.textContent = msg;
+    authError.classList.add('show');
+  }
+  function showSuccess(msg){
+    authError.textContent = msg;
+    authError.classList.add('show', 'success');
+  }
+  function clearError(){
+    authError.classList.remove('show', 'success');
+    authError.textContent = '';
+  }
+
+  tabLogin.addEventListener('click', () => {
+    tabLogin.classList.add('active'); tabSignup.classList.remove('active');
+    loginForm.style.display = 'block'; signupForm.style.display = 'none';
+    authTitle.textContent = 'Welcome back';
+    authSub.textContent = 'Log in to keep watching on StreamVerse.';
+    clearError();
+  });
+  tabSignup.addEventListener('click', () => {
+    tabSignup.classList.add('active'); tabLogin.classList.remove('active');
+    signupForm.style.display = 'block'; loginForm.style.display = 'none';
+    authTitle.textContent = 'Create your account';
+    authSub.textContent = 'Sign up free — stream and download instantly.';
+    clearError();
+  });
+
+  // Where to send the visitor after a successful login/signup. auth-guard.js
+  // (on protected pages like profile.html) sends guests here with
+  // ?redirect=<page they were headed to>, so e.g. a Basic viewer who tapped
+  // Download and got bounced through login lands back on the upgrade modal
+  // instead of just the homepage. Restricted to a same-site .html page (no
+  // protocol/host/`//`) so this can't be turned into an open redirect.
+  function getRedirectTarget(){
+    const raw = new URLSearchParams(window.location.search).get('redirect');
+    if (!raw) return 'index.html';
+    let decoded;
+    try { decoded = decodeURIComponent(raw); } catch (err) { return 'index.html'; }
+    if (!/^[a-zA-Z0-9_-]+\.html(\?[^\s]*)?$/.test(decoded)) return 'index.html';
+    return decoded;
+  }
+
+  function wireForms(){
+    // If already logged in, bounce straight to wherever they were headed.
+    svAuth.currentUser().then((user) => { if (user) window.location.href = getRedirectTarget(); });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+      const submitBtn = loginForm.querySelector('.auth-submit');
+      submitBtn.disabled = true; submitBtn.textContent = 'Logging in…';
+      const identifier = document.getElementById('loginIdentifier').value;
+      const password    = document.getElementById('loginPassword').value;
+      const result = await svAuth.login(identifier, password);
+      submitBtn.disabled = false; submitBtn.textContent = 'Log In';
+      if (!result.ok) return showError(result.error);
+      window.location.href = getRedirectTarget();
+    });
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+      const submitBtn = signupForm.querySelector('.auth-submit');
+      submitBtn.disabled = true; submitBtn.textContent = 'Creating account…';
+      const username = document.getElementById('signupUsername').value;
+      const email    = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const result = await svAuth.signup(username, email, password);
+      submitBtn.disabled = false; submitBtn.textContent = 'Create Account';
+      if (!result.ok) return showError(result.error);
+      window.location.href = getRedirectTarget();
+    });
+  }
+
+  if (window.svAuth) wireForms();
+  else window.addEventListener('svAuthReady', wireForms, { once: true });
+
+  // "Forgot password?" — login tab only. No sign-in required: the
+  // Netlify function always replies with a generic success message
+  // whether or not that email has an account, so this can never be
+  // used to probe which emails are registered.
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  forgotPasswordLink.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginIdentifier').value.trim();
+    if (!EMAIL_RE.test(email)) {
+      showError('Enter your email address above first, then click "Forgot password?" again.');
+      return;
+    }
+    clearError();
+    const originalText = forgotPasswordLink.textContent;
+    forgotPasswordLink.textContent = 'Sending…';
+    try {
+      const res = await fetch('/.netlify/functions/send-transactional-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'reset_password', email })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Could not send reset email.');
+      showSuccess("If that account exists, we've sent a password reset link to that email.");
+    } catch (err) {
+      console.error('Forgot password failed:', err);
+      showError('Something went wrong sending the reset email. Please try again shortly.');
+    } finally {
+      forgotPasswordLink.textContent = originalText;
+    }
+  });
+</script>
+</body>
+</html>

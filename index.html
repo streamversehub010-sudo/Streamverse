@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>StreamVerse — Watch &amp; Download Movies</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232563eb'/%3E%3Cpolygon points='9,7 9,17 17,12' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<!-- Applies a saved light/dark theme preference (from Settings) before paint -->
+<script src="theme.js"></script>
+</head>
+<body>
+
+<!-- ============================== NAVBAR ============================== -->
+<nav class="navbar">
+  <button class="nav-hamburger" id="navHamburger" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+  <div class="logo-group">
+    <div class="logo">
+      <span class="logo-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+        </svg>
+      </span>
+      <span class="logo-text">Stream<span>Verse</span></span>
+    </div>
+    <!-- Notification bell lives right beside the logo, not on the far side of the header -->
+    <span id="navNotifSlot"></span>
+  </div>
+
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" class="active" data-navcat="all">Home</a></li>
+    <li><a href="#" data-navcat="movie">Movies</a></li>
+    <li><a href="#" data-navcat="series">Series</a></li>
+    <li><a href="#" data-navcat="anime">Anime</a></li>
+  </ul>
+  <div class="nav-links-scrim" id="navLinksScrim"></div>
+
+  <div class="nav-right">
+    <span id="navAuthSlot"></span>
+  </div>
+</nav>
+
+<!-- ============================== TRENDING CAROUSEL ============================== -->
+<!-- Full-width slideshow of titles the admin has flagged "Trending" (Admin
+     Panel → Content Library → Movie Settings). Order is controlled there via
+     drag-and-drop. Markup for slides/dots is injected by the carousel script
+     below once the live catalog loads. -->
+<header class="carousel" id="trendingCarousel" style="display:none;">
+  <div class="carousel-track" id="carouselTrack"></div>
+  <button class="carousel-arrow carousel-arrow-prev" id="carouselPrev" aria-label="Previous slide">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+  </button>
+  <button class="carousel-arrow carousel-arrow-next" id="carouselNext" aria-label="Next slide">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+  <div class="carousel-dots" id="carouselDots"></div>
+</header>
+
+<!-- ============================== CATEGORY FILTER (quick-jump to a row below) ============================== -->
+<div class="category-bar" id="categoryBar">
+  <button class="category-chip active" data-category="all">All</button>
+  <button class="category-chip" data-category="movie">🎬 Movies</button>
+  <button class="category-chip" data-category="series">📺 Series</button>
+  <button class="category-chip" data-category="anime">🈴 Anime</button>
+  <button class="category-chip" data-category="kdrama">🇰🇷 K-Drama</button>
+  <button class="category-chip" data-category="cartoon">🧸 Cartoon</button>
+</div>
+
+<!-- ============================== SEARCH BAR (moved here, under the category chips) ============================== -->
+<div class="search-row" id="searchRow">
+  <div class="search-box">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7a7a82" stroke-width="2">
+      <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search...">
+  </div>
+</div>
+
+<!-- ============================== SEARCH RESULTS (shown instead of rows while searching) ============================== -->
+<div id="searchResultsSection" style="display:none;">
+  <div class="section-heading">
+    <span class="bar"></span>
+    <h2 id="searchHeading">Search results</h2>
+  </div>
+  <main class="movie-grid" id="searchGrid"></main>
+</div>
+
+<!-- ============================== CATEGORY ROWS (Netflix-style horizontal scroll, one per category) ============================== -->
+<!-- Rows are injected here by JS: one per category that has at least one title, each with its own horizontally-scrolling strip and a "View All" link that opens the full category page in a new tab. -->
+<div id="rowsContainer"></div>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="logo">
+        <span class="logo-mark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <polygon points="8,6 8,18 18,12" fill="#2563eb"/>
+          </svg>
+        </span>
+        <span class="logo-text">Stream<span>Verse</span></span>
+      </div>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="category.html?cat=movie" target="_blank" rel="noopener noreferrer">Movies</a></li>
+        <li><a href="category.html?cat=series" target="_blank" rel="noopener noreferrer">Series</a></li>
+        <li><a href="category.html?cat=anime" target="_blank" rel="noopener noreferrer">Anime</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><button type="button" class="footer-link-btn" id="footerContactBtn">Contact Us</button></li>
+        <li><a href="dmca.html">DMCA</a></li>
+      </ul>
+    </div>
+    <p class="footer-legal">
+      StreamVerse is intended to provide information and access to legally authorized content only.
+      All trademarks, logos, images, and copyrighted materials belong to their respective owners.
+      By using this website, you agree to our <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>.
+    </p>
+    <div class="footer-bottom">
+      <span>© 2026 StreamVerse. All Rights Reserved.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================== CONTACT US POPUP ==============================
+     Opened from the "Contact Us" link in the footer above. Support email /
+     phone / any extra info rows are admin-managed (Admin Panel -> Support
+     Contact). The message form (feedback + movie requests) is open to
+     everyone and is filed to the Admin Panel -> Broadcast -> Contact
+     Messages inbox — see footer-contact.js / contact-messages.js. -->
+<div class="modal-overlay" id="contactPopupOverlay">
+  <div class="modal-box contact-popup-box" role="dialog" aria-modal="true" aria-labelledby="contactPopupTitle">
+    <div class="plan-modal-head">
+      <div>
+        <h2 id="contactPopupTitle" style="margin-bottom:2px;">Contact Us</h2>
+        <p class="card-sub" style="margin:0;">Reach the StreamVerse support team.</p>
+      </div>
+      <button type="button" class="plan-modal-close" id="contactPopupClose" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="contact-popup-info" id="contactPopupInfo"><!-- support email / phone / extra info injected by footer-contact.js --></div>
+
+    <div class="contact-popup-form-section">
+      <h3 class="contact-popup-subhead">Send Feedback or Request a Movie</h3>
+      <div id="contactPopupFormWrap"><!-- message form injected by footer-contact.js --></div>
+    </div>
+  </div>
+</div>
+
+<!-- Shared movie database (also used by viewer.js) -->
+<script src="movies-data.js"></script>
+<script src="seasons.js"></script>
+<!-- Firebase Authentication (accounts, sessions, roles) -->
+<script type="module" src="firebase-auth.js"></script>
+<script src="upgrade-trigger.js"></script>
+<!-- Catalog / live-ops / activity-log data store (localStorage-backed demo) -->
+<script src="store.js"></script>
+<!-- Real-time Firestore-backed movie catalog (syncs across devices) -->
+<script type="module" src="catalog-firestore.js"></script>
+<script type="module" src="broadcast.js"></script>
+<!-- Contact Us popup submissions -> admin panel inbox (see contact-messages.js) -->
+<script type="module" src="contact-messages.js"></script>
+<!-- Admin-managed Contact Us info (email/phone/extra fields) for the footer popup -->
+<script type="module" src="support-contact.js"></script>
+<!-- Notification bell (badge unlocks, account alerts) -->
+<script src="notifications.js"></script>
+<!-- Auto-notifies a viewer when an admin upgrades their plan -->
+<script type="module" src="plan-notify.js"></script>
+<!-- Shared card-rendering helpers (also used by category.html) -->
+<script src="catalog-render.js"></script>
+
+<script>
+/* =========================================================================
+   Homepage rendering logic
+   - Builds one horizontally-scrolling row per category (Netflix-style),
+     each capped at ROW_LIMIT cards with a "View All" link to the full
+     category page (opens in a new tab).
+   - Typing in the search box swaps the rows out for a flat results grid.
+   - "Watch Now" -> links to viewer.html?movie=<id>
+   - "Download"  -> external authorized link set in the admin panel (if any)
+   ========================================================================= */
+
+const ROW_LIMIT = 12; // cards shown per row before "View All" is needed
+const ROW_ORDER = ['movie', 'series', 'anime', 'kdrama', 'cartoon'];
+
+const rowsContainer     = document.getElementById('rowsContainer');
+const searchSection     = document.getElementById('searchResultsSection');
+const searchGrid        = document.getElementById('searchGrid');
+const searchHeadingEl   = document.getElementById('searchHeading');
+const searchInputEl     = document.getElementById('searchInput');
+
+let liveMovies = {};
+let lastRowsKey = null;
+
+function renderRows(movies){
+  // Skip rebuilding when nothing actually changed (Firestore can re-fire
+  // snapshots with no real data difference) — avoids needless reflows.
+  const key = JSON.stringify(movies);
+  if (key === lastRowsKey) return;
+  lastRowsKey = key;
+
+  const html = ROW_ORDER.map(category => {
+    const inCategory = Object.values(movies).filter(m => (m.category || 'movie') === category);
+    if (!inCategory.length) return '';
+
+    const shown = inCategory.slice(0, ROW_LIMIT);
+    const label = CATEGORY_HEADINGS[category] || category;
+    const cardsHtml = shown.map(renderMovieCard).join('');
+
+    return `
+    <section class="category-row" id="row-${category}">
+      <div class="category-row-header">
+        <h2>${label}</h2>
+        <a class="view-all-link" href="category.html?cat=${encodeURIComponent(category)}" target="_blank" rel="noopener noreferrer">
+          View All
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+      <div class="row-scroller-wrap">
+        <button class="row-nav-btn row-nav-prev" data-scroll="-1" aria-label="Scroll left">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="row-scroller">${cardsHtml}</div>
+        <button class="row-nav-btn row-nav-next" data-scroll="1" aria-label="Scroll right">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+    </section>`;
+  }).join('');
+
+  rowsContainer.innerHTML = html;
+}
+
+// Row prev/next arrow buttons: one delegated listener instead of binding
+// a pair of handlers per row.
+rowsContainer.addEventListener('click', (e) => {
+  const btn = e.target.closest('.row-nav-btn');
+  if (!btn) return;
+  const scroller = btn.parentElement.querySelector('.row-scroller');
+  const dir = Number(btn.dataset.scroll);
+  scroller.scrollBy({ left: dir * scroller.clientWidth * 0.9, behavior: 'smooth' });
+});
+
+let lastSearchKey = null;
+function renderSearchGrid(list){
+  const key = JSON.stringify(list);
+  if (key === lastSearchKey) return;
+  lastSearchKey = key;
+  searchGrid.innerHTML = Object.values(list).map(renderMovieCard).join('');
+}
+
+function applySearch(){
+  const q = searchInputEl.value.trim().toLowerCase();
+  if (!q){
+    searchSection.style.display = 'none';
+    rowsContainer.style.display = '';
+    return;
+  }
+  const results = filterMovies(liveMovies, q);
+  searchHeadingEl.textContent = `Search results for "${searchInputEl.value.trim()}"`;
+  renderSearchGrid(results);
+  searchSection.style.display = '';
+  rowsContainer.style.display = 'none';
+}
+searchInputEl.addEventListener('input', debounce(applySearch, 150));
+
+function initCatalog(){
+  svCatalog.subscribe((movies) => {
+    liveMovies = movies;
+    renderRows(movies);
+    applySearch(); // keep search results fresh if the catalog changes mid-search
+    buildTrendingCarousel(movies);
+  });
+}
+if (window.svCatalog) initCatalog();
+else window.addEventListener('svCatalogReady', initCatalog, { once: true });
+
+// ---------------------------- Category quick-nav (scrolls down to the row) ----------------------------
+document.getElementById('categoryBar').addEventListener('click', (e) => {
+  const chip = e.target.closest('.category-chip');
+  if (!chip) return;
+  document.querySelectorAll('.category-chip').forEach(c => c.classList.toggle('active', c === chip));
+  goToCategory(chip.dataset.category);
+});
+document.querySelectorAll('.nav-links a[data-navcat]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-links a[data-navcat]').forEach(l => l.classList.toggle('active', l === link));
+    goToCategory(link.dataset.navcat);
+    closeMobileNav();
+  });
+});
+
+// ---------------------------- Mobile header menu ----------------------------
+// The nav-links (Home/Movies/Series/Anime) collapse into a
+// hamburger-triggered slide-down panel below ~900px instead of just
+// vanishing, so the same tabs stay reachable on phones/tablets.
+const navHamburger  = document.getElementById('navHamburger');
+const navLinksPanel = document.getElementById('navLinks');
+const navLinksScrim = document.getElementById('navLinksScrim');
+
+function openMobileNav(){
+  navLinksPanel.classList.add('open');
+  navLinksScrim.classList.add('show');
+  navHamburger.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileNav(){
+  navLinksPanel.classList.remove('open');
+  navLinksScrim.classList.remove('show');
+  navHamburger.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+navHamburger.addEventListener('click', () => {
+  navLinksPanel.classList.contains('open') ? closeMobileNav() : openMobileNav();
+});
+navLinksScrim.addEventListener('click', closeMobileNav);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobileNav(); });
+window.addEventListener('resize', debounce(() => {
+  if (window.innerWidth > 900) closeMobileNav();
+}, 150), { passive: true });
+function goToCategory(category){
+  searchInputEl.value = '';
+  applySearch();
+  if (category === 'all'){
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  const row = document.getElementById(`row-${category}`);
+  if (row) row.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---------------------------- Trending Movies Carousel ----------------------------
+// Full-width slideshow built only from titles the admin has flagged
+// "Trending" (Admin Panel -> Content Library -> Movie Settings), in the
+// order the admin set via drag-and-drop there (movie.order, ascending).
+//
+// Design notes (see also the .carousel* rules in style.css):
+//  - The track is a flex row of full-width slides moved with translateX()
+//    only (GPU-friendly), so sliding, arrows, dots, and swipe all share the
+//    same "go to index N" code path.
+//  - Infinite loop is done with a cloned first/last slide at each end; when
+//    a transition lands on a clone, we silently snap back to the real slide
+//    with the transition disabled, wrapped in a double requestAnimationFrame
+//    so the browser never paints the un-transitioned jump.
+//  - Only the first slide's image loads eagerly; every other slide is
+//    loading="lazy", and we explicitly preload the *next* slide's image
+//    ahead of each transition so it's already decoded when it slides in.
+let carouselBuilt = false;
+function buildTrendingCarousel(movies){
+  if (carouselBuilt) return; // build once; live catalog edits shouldn't reshuffle it mid-view
+  const trending = Object.values(movies)
+    .filter(m => m.trending)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  if (!trending.length) return; // nothing marked Trending yet -> keep the carousel hidden
+  carouselBuilt = true;
+
+  const root      = document.getElementById('trendingCarousel');
+  const track     = document.getElementById('carouselTrack');
+  const dotsWrap  = document.getElementById('carouselDots');
+  const prevBtn   = document.getElementById('carouselPrev');
+  const nextBtn   = document.getElementById('carouselNext');
+  const n = trending.length;
+  const loop = n > 1;
+
+  function slideMarkup(movie, i, eager){
+    const img = movie.backdrop || movie.poster;
+    const firstEp = window.svSeasons ? window.svSeasons.firstEpisode(movie) : null;
+    const dl = firstEp ? firstEp.downloadUrl : movie.downloadUrl;
+    return `
+    <div class="carousel-slide" data-real-index="${i}">
+      <img class="carousel-slide-img" src="${img}" alt="${movie.title}" ${eager ? '' : 'loading="lazy"'}>
+      <div class="carousel-slide-scrim"></div>
+      <div class="carousel-slide-panel">
+        <h2 class="carousel-slide-title">${movie.title}</h2>
+        <div class="carousel-slide-meta">
+          <span class="rating">★ ${movie.rating}</span>
+          <span class="dot"></span><span>${movie.year}</span>
+          <span class="dot"></span><span>${movie.genre}</span>
+        </div>
+        <p class="carousel-slide-desc">${movie.description || ''}</p>
+        <div class="carousel-slide-actions">
+          <a class="btn btn-watch" href="viewer.html?movie=${encodeURIComponent(movie.id)}">
+            ${playIconSVG()} ${movie.live ? 'Watch Live' : 'Watch Now'}
+          </a>
+          ${dl ? `<a class="btn btn-download" href="${dl}" target="_blank" rel="noopener noreferrer">${downloadIconSVG()} <span class="dl-label">Download</span></a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Real slides, plus a clone of the last title before slide 0 and a clone
+  // of the first title after the last slide, so wrapping in either
+  // direction can animate smoothly instead of jump-cutting.
+  const slidesHtml = trending.map((m, i) => slideMarkup(m, i, i === 0)).join('');
+  track.innerHTML = loop
+    ? slideMarkup(trending[n - 1], n - 1, false) + slidesHtml + slideMarkup(trending[0], 0, false)
+    : slidesHtml;
+
+  dotsWrap.innerHTML = trending.map((_, i) =>
+    `<button class="carousel-dot${i === 0 ? ' active' : ''}" data-dot="${i}" aria-label="Go to slide ${i + 1}"></button>`
+  ).join('');
+  if (!loop){ prevBtn.style.display = 'none'; nextBtn.style.display = 'none'; }
+  if (n < 2){ dotsWrap.style.display = 'none'; }
+
+  root.style.display = '';
+
+  const slideEls = () => track.querySelectorAll('.carousel-slide');
+  const dotEls   = () => dotsWrap.querySelectorAll('.carousel-dot');
+
+  // trackIndex walks the DOM (including the two clones); realIndex is the
+  // trending-array position the dots/preload logic care about.
+  let trackIndex = loop ? 1 : 0;
+  let realIndex = 0;
+  let autoplayTimer = null;
+  let isHovering = false;
+
+  function preload(src){
+    if (!src) return;
+    const im = new Image();
+    im.src = src;
+  }
+  function preloadRealIndex(i){
+    const m = trending[(i + n) % n];
+    if (m) preload(m.backdrop || m.poster);
+  }
+
+  function paint(withTransition){
+    const track_ = track; // rAF-wrapped so the browser never paints an un-transitioned jump
+    requestAnimationFrame(() => {
+      track_.classList.toggle('no-transition', !withTransition);
+      requestAnimationFrame(() => {
+        track_.style.transform = `translateX(-${trackIndex * 100}%)`;
+      });
+    });
+  }
+
+  function setActive(){
+    slideEls().forEach((el, i) => el.classList.toggle('is-active', i === trackIndex));
+    dotEls().forEach((el, i) => el.classList.toggle('active', i === realIndex));
+  }
+
+  function goTo(nextTrackIndex, withTransition = true){
+    trackIndex = nextTrackIndex;
+    realIndex = loop ? (trackIndex - 1 + n) % n : trackIndex;
+    paint(withTransition);
+    setActive();
+    preloadRealIndex(realIndex + 1); // always have the *next* image ready
+  }
+
+  function next(){ goTo(trackIndex + 1); }
+  function prev(){ goTo(trackIndex - 1); }
+
+  // When a transition lands on a cloned slide, silently re-point to the
+  // real slide at the opposite end with no transition (the classic
+  // "infinite carousel" loop trick).
+  track.addEventListener('transitionend', (e) => {
+    if (e.target !== track || !loop) return;
+    if (trackIndex === n + 1){ trackIndex = 1; paint(false); setActive(); }
+    else if (trackIndex === 0){ trackIndex = n; paint(false); setActive(); }
+  });
+
+  function resetAutoplay(){
+    if (autoplayTimer) clearInterval(autoplayTimer);
+    if (n < 2) return;
+    autoplayTimer = setInterval(() => { if (!isHovering) next(); }, 5000);
+  }
+
+  prevBtn.addEventListener('click', () => { prev(); resetAutoplay(); });
+  nextBtn.addEventListener('click', () => { next(); resetAutoplay(); });
+  dotsWrap.addEventListener('click', (e) => {
+    const dot = e.target.closest('.carousel-dot');
+    if (!dot) return;
+    goTo(loop ? Number(dot.dataset.dot) + 1 : Number(dot.dataset.dot));
+    resetAutoplay();
+  });
+
+  // Pause autoplay on hover (desktop only — touch devices don't get a
+  // sticky :hover state, so this never blocks swiping on mobile).
+  root.addEventListener('mouseenter', () => { isHovering = true; });
+  root.addEventListener('mouseleave', () => { isHovering = false; });
+
+  // Swipe support (mobile): horizontal drag past a small threshold
+  // advances/retreats one slide; short/vertical drags are ignored so
+  // normal page scrolling still works.
+  let touchStartX = 0, touchStartY = 0, touching = false;
+  track.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touching = true;
+  }, { passive: true });
+  track.addEventListener('touchend', (e) => {
+    if (!touching) return;
+    touching = false;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)){
+      dx < 0 ? next() : prev();
+      resetAutoplay();
+    }
+  }, { passive: true });
+
+  preloadRealIndex(1); // slide 2's image, ready before it's ever needed
+  paint(false); // land on the real first slide (trackIndex 1 when looping) with no transition
+  setActive();
+  resetAutoplay();
+}
+</script>
+<!-- Renders the login pill / account menu into the navbar -->
+<script src="nav-auth.js"></script>
+
+<!-- Contact Us footer popup: support info (admin-managed) + message form, filed to the admin panel's Contact Messages inbox -->
+<script src="footer-contact.js"></script>
+</body>
+</html>

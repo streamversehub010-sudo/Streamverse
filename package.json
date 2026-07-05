@@ -1,0 +1,11 @@
+{
+  "name": "streamverse-hub",
+  "private": true,
+  "version": "1.0.0",
+  "description": "StreamVerse — Netlify Functions dependencies for server-side features (email broadcast, OTP-verified signup).",
+  "dependencies": {
+    "cloudinary": "^2.10.0",
+    "firebase-admin": "^12.6.0",
+    "resend": "^4.0.1"
+  }
+}
